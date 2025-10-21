@@ -1,0 +1,14 @@
+# node
+node_modules
+pnpm-lock.yaml
+
+# rust
+/target
+
+# sqlite
+*.db
+*.sqlite
+
+# tauri build artifacts
+/apps/desktop/src-tauri/target
+/apps/desktop/src-tauri/tauri.conf.json.bak

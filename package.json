@@ -1,0 +1,11 @@
+{
+  "name": "offline-fiction",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @app/desktop dev",
+    "build:web": "pnpm --filter @app/desktop build",
+    "router": "cargo run --manifest-path core/router/Cargo.toml"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {"type": "integer"},
+    "global": {
+      "type": "object",
+      "properties": {
+        "tense": {"enum": ["past", "present"]},
+        "pov": {"enum": ["close-third", "first", "omniscient"]},
+        "narrative_contractions": {"type": "boolean"},
+        "dialogue_contractions": {"type": "boolean"},
+        "ban_em_dashes": {"type": "boolean"},
+        "avoid_adverbs": {"type": "boolean"},
+        "avoid_to_be_verbs": {"type": "boolean"},
+        "max_sentence_words": {"type": "integer"}
+      },
+      "required": ["tense", "pov", "narrative_contractions", "dialogue_contractions", "ban_em_dashes"]
+    },
+    "mechanics": {"type": "object"},
+    "voice": {"type": "object"},
+    "continuity_checks": {"type": "object"}
+  },
+  "required": ["version", "global"]
+}

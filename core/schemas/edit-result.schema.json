@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "edits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "line": {"type": "integer"},
+          "old": {"type": "string"},
+          "new": {"type": "string"},
+          "citations": {"type": "array", "items": {"type": "string"}},
+          "rationale": {"type": "string"}
+        },
+        "required": ["line", "old", "new"]
+      }
+    },
+    "refused": {"type": "array"}
+  },
+  "required": ["edits"]
+}
