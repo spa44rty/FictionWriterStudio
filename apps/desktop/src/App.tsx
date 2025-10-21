@@ -4,7 +4,7 @@ import { BibleSection } from './components/BibleSection'
 import { CharacterList } from './components/CharacterList'
 import { LIMITS } from './types'
 
-type Section = 'braindump' | 'synopsis' | 'outline' | 'characters' | 'worldbuilding' | 'genre' | 'styleGuide' | 'editor'
+type Section = 'braindump' | 'synopsis' | 'outline' | 'characters' | 'worldbuilding' | 'genre' | 'styleGuide' | 'settings' | 'editor'
 
 function useApi() {
   const getApiUrl = () => {
@@ -73,11 +73,24 @@ export default function App() {
   async function onGetSuggestions() {
     setLoadingSuggestions(true)
     try {
-      const r = await minorEdit(text, 'llama3.2:latest')
+      const r = await minorEdit(text, store.models.medium)
       setSuggestions(r.edits || [])
     } catch (err) {
       console.error('Failed to get AI suggestions:', err)
       alert('Could not get AI suggestions. Make sure Ollama is running with a model installed.')
+    } finally {
+      setLoadingSuggestions(false)
+    }
+  }
+
+  async function onMajorRewrite() {
+    setLoadingSuggestions(true)
+    try {
+      const r = await minorEdit(text, store.models.large)
+      setSuggestions(r.edits || [])
+    } catch (err) {
+      console.error('Failed to get major rewrite:', err)
+      alert('Could not get major rewrite. Make sure Ollama is running with the large model installed.')
     } finally {
       setLoadingSuggestions(false)
     }
@@ -115,7 +128,7 @@ User question: ${chatInput}
 
 Provide helpful, specific advice about their writing. If they ask about fixing issues, suggest specific improvements. Keep responses concise and actionable.`
 
-      const response = await minorEdit(prompt, 'llama3.2:latest')
+      const response = await minorEdit(prompt, store.models.small)
       const assistantMessage: ChatMessage = { 
         role: 'assistant', 
         content: response.edits?.[0]?.new || 'I can help you improve your writing. Try asking about specific issues or request suggestions for improvements.'
@@ -174,6 +187,7 @@ Provide helpful, specific advice about their writing. If they ask about fixing i
     { section: 'worldbuilding', label: 'Worldbuilding' },
     { section: 'genre', label: 'Genre' },
     { section: 'styleGuide', label: 'Style Guide' },
+    { section: 'settings', label: 'AI Models' },
     { section: 'editor', label: '--- Scene Editor ---' }
   ]
 
@@ -247,6 +261,77 @@ Provide helpful, specific advice about their writing. If they ask about fixing i
             onUpdate={store.updateCharacter}
             onDelete={store.deleteCharacter}
           />
+        )
+      case 'settings':
+        return (
+          <div style={{ padding: 12 }}>
+            <h2>AI Model Configuration</h2>
+            <p style={{ color: '#666', fontSize: 14, marginBottom: 24 }}>
+              Configure which Ollama models to use for different tasks. Make sure you've installed these models with `ollama pull &lt;model-name&gt;`.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 8 }}>
+                  Small Model (Quick Chat Responses)
+                </label>
+                <input
+                  type="text"
+                  value={store.models.small}
+                  onChange={e => store.updateModel('small', e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14 }}
+                  placeholder="e.g., llama3.2:3b, phi3"
+                />
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                  Used for: AI Writing Assistant chat
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 8 }}>
+                  Medium Model (Analysis & Minor Edits)
+                </label>
+                <input
+                  type="text"
+                  value={store.models.medium}
+                  onChange={e => store.updateModel('medium', e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14 }}
+                  placeholder="e.g., llama3.2:latest, mistral"
+                />
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                  Used for: "Get AI Suggestions" button
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: 8 }}>
+                  Large Model (Major Rewrites & Generation)
+                </label>
+                <input
+                  type="text"
+                  value={store.models.large}
+                  onChange={e => store.updateModel('large', e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14 }}
+                  placeholder="e.g., llama3:70b, qwen2.5:72b"
+                />
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                  Used for: "Major Rewrite" button
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 32, padding: 16, background: '#e3f2fd', borderRadius: 4 }}>
+              <h4 style={{ marginTop: 0 }}>Recommended Models:</h4>
+              <ul style={{ fontSize: 14, color: '#555' }}>
+                <li><strong>Small:</strong> llama3.2:3b, phi3, gemma2:2b</li>
+                <li><strong>Medium:</strong> llama3.2:latest, mistral, qwen2.5:7b</li>
+                <li><strong>Large:</strong> llama3:70b, qwen2.5:72b, mixtral:8x7b</li>
+              </ul>
+              <div style={{ fontSize: 13, color: '#666', marginTop: 12 }}>
+                Install models with: <code style={{ background: '#fff', padding: '2px 6px', borderRadius: 3 }}>ollama pull &lt;model-name&gt;</code>
+              </div>
+            </div>
+          </div>
         )
       case 'editor':
         return (
@@ -407,8 +492,27 @@ Provide helpful, specific advice about their writing. If they ask about fixing i
                   borderRadius: 4
                 }}
               >
-                {loadingSuggestions ? 'Getting Suggestions...' : 'Get AI Suggestions'}
+                {loadingSuggestions ? 'Working...' : 'Get AI Suggestions'}
               </button>
+              <button 
+                onClick={onMajorRewrite} 
+                disabled={loadingSuggestions}
+                style={{ 
+                  padding: '8px 12px', 
+                  cursor: loadingSuggestions ? 'wait' : 'pointer',
+                  background: loadingSuggestions ? '#ccc' : '#ff9800',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4
+                }}
+              >
+                {loadingSuggestions ? 'Working...' : 'Major Rewrite'}
+              </button>
+            </div>
+            <div style={{ marginTop: 12, fontSize: 11, color: '#666', lineHeight: 1.4 }}>
+              <div><strong>Analyze:</strong> Fast local checks</div>
+              <div><strong>AI Suggestions:</strong> Medium model</div>
+              <div><strong>Major Rewrite:</strong> Large model</div>
             </div>
           </>
         )}

@@ -4,6 +4,9 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-21: Implemented three-tier AI model system (small/medium/large) with configurable settings
+- 2025-10-21: Added "Major Rewrite" button using large model for comprehensive text generation
+- 2025-10-21: Added resizable side panes with drag handles for customizable layout
 - 2025-10-21: Added AI Writing Assistant chat interface at bottom of Scene Editor for conversational help
 - 2025-10-21: Added "Get AI Suggestions" button with line-by-line edit approval workflow
 - 2025-10-21: Fixed CORS configuration to enable frontend-backend communication
@@ -109,3 +112,30 @@ The deterministic engine performs 15+ quality checks:
 - Ollama expected on port 11434
 - All network traffic restricted to 127.0.0.1
 - Story Bible data stored in Zustand store (in-memory, persistence pending)
+
+## AI Model System
+The app uses a **three-tier model strategy** for optimal performance:
+
+### Small Model (Quick Chat)
+- **Default**: `llama3.2:3b`
+- **Used for**: AI Writing Assistant chat interface
+- **Purpose**: Fast, conversational responses to user questions
+- **Alternatives**: `phi3`, `gemma2:2b`
+
+### Medium Model (Analysis & Edits)
+- **Default**: `llama3.2:latest` (7-8B parameters)
+- **Used for**: "Get AI Suggestions" button
+- **Purpose**: Line-by-line edits, spelling corrections, alternative phrasing
+- **Alternatives**: `mistral`, `qwen2.5:7b`
+
+### Large Model (Major Rewrites)
+- **Default**: `llama3:70b`
+- **Used for**: "Major Rewrite" button
+- **Purpose**: Comprehensive text generation and major rewrites
+- **Alternatives**: `qwen2.5:72b`, `mixtral:8x7b`
+
+### Configuration
+- Models can be changed in the **AI Models** settings page
+- All three models run locally through Ollama
+- No internet connection required after models are downloaded
+- Install models: `ollama pull <model-name>`
