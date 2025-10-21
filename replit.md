@@ -96,12 +96,10 @@ The deterministic engine performs 15+ quality checks:
 - Navigation between sections via clickable sidebar
 
 ### Scene Editor Layout
-- **Three-panel layout for optimal workflow:**
-  - **Left Panel**: Story Bible navigation and Editor Controls button
-  - **Top Half**: Scene Editor textarea for writing
-  - **Bottom Half**: Split into two sections:
-    - **Left**: Issues & Suggestions panel
-    - **Right**: AI Writing Assistant chat
+- **Optimized three-section layout:**
+  - **Left Sidebar**: Story Bible navigation with resizable drag handle (200-500px)
+  - **Main Area**: Scene Editor (left) and Issues & Suggestions panel (right, 350px fixed width)
+  - **Bottom Bar**: AI Writing Assistant chat prompt line spanning full width
 
 ### Scene Editor Features
 - **Prose Analysis**: "Analyze & Suggest Fixes" button runs 16+ deterministic checks AND provides AI-powered corrections
@@ -111,19 +109,19 @@ The deterministic engine performs 15+ quality checks:
   - Individual Apply/Reject buttons for each suggestion
   - Respects style guide rules
   - Uses medium model for balanced speed and quality
-- **Issues & Suggestions Panel**: Bottom-left shows color-coded issues and AI suggestions
+- **Issues & Suggestions Panel**: Right sidebar shows color-coded issues and AI suggestions
   - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity levels
   - **AI Suggestions**: Line-by-line edits with Apply/Reject controls
-- **AI Writing Assistant Chat**: Bottom-right interactive chat interface
+  - Spans full height for easy review of all issues
+- **AI Writing Assistant**: Bottom chat bar spanning full width
   - Ask questions about your writing ("How can I fix the spelling errors?")
   - **Intelligent automatic model selection** based on your prompt:
     - Simple questions/explanations → Small model (fast)
     - Fix/improve/edit requests → Medium model (balanced)
     - Rewrite/regenerate/transform → Large model (highest quality)
   - Context-aware responses based on current text
-  - Natural conversation flow with message history
-  - Press Enter or click Send to submit messages
-  - See which model was used in the response
+  - Shows last response preview below prompt line
+  - Press Enter or click Ask to submit questions
 
 ## Development Notes
 - Router runs on port 8000 (changed from 8765 due to Replit restrictions)

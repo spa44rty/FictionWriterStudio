@@ -361,30 +361,30 @@ export default function App() {
       case 'editor':
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Top Half: Scene Editor */}
-            <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', padding: 12, borderBottom: '2px solid #ddd' }}>
-              <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
-              <textarea
-                value={text}
-                onChange={e => setText(e.target.value)}
-                style={{
-                  flex: 1,
-                  width: '100%',
-                  fontFamily: 'serif',
-                  fontSize: 18,
-                  lineHeight: 1.6,
-                  padding: 12,
-                  border: '1px solid #ddd',
-                  borderRadius: 4,
-                  resize: 'none'
-                }}
-              />
-            </div>
+            {/* Main content area with editor and issues side-by-side */}
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              {/* Left: Scene Editor */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 12, borderRight: '1px solid #ddd' }}>
+                <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
+                <textarea
+                  value={text}
+                  onChange={e => setText(e.target.value)}
+                  style={{
+                    flex: 1,
+                    width: '100%',
+                    fontFamily: 'serif',
+                    fontSize: 18,
+                    lineHeight: 1.6,
+                    padding: 12,
+                    border: '1px solid #ddd',
+                    borderRadius: 4,
+                    resize: 'none'
+                  }}
+                />
+              </div>
 
-            {/* Bottom Half: Suggested Edits & Chat */}
-            <div style={{ flex: '1 1 50%', display: 'flex', overflow: 'hidden' }}>
-              {/* Suggested Edits Section */}
-              <div style={{ flex: '1 1 50%', borderRight: '1px solid #ddd', padding: 12, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+              {/* Right: Issues & Suggestions */}
+              <div style={{ width: 350, padding: 12, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
                 <h3 style={{ marginTop: 0, marginBottom: 12 }}>Issues & Suggestions</h3>
                 
                 {/* Issues */}
@@ -480,91 +480,52 @@ export default function App() {
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Chat Section */}
-              <div style={{ flex: '1 1 50%', padding: 12, display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{ marginTop: 0, marginBottom: 8 }}>AI Writing Assistant</h3>
-                
-                <div style={{ 
-                  flex: 1, 
-                  overflow: 'auto', 
-                  padding: 12, 
-                  background: '#f5f5f5', 
-                  borderRadius: 4, 
-                  marginBottom: 8
-                }}>
-                  {chatMessages.length === 0 ? (
-                    <div style={{ color: '#666', fontSize: 13, fontStyle: 'italic' }}>
-                      Ask me anything! The AI automatically chooses the best model:
-                      <ul style={{ marginTop: 8, fontSize: 12 }}>
-                        <li><strong>Small:</strong> "What issues?" or "Explain this rule"</li>
-                        <li><strong>Medium:</strong> "Fix spelling" or "Better phrasing"</li>
-                        <li><strong>Large:</strong> "Rewrite paragraph" or "Major restructure"</li>
-                      </ul>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {chatMessages.map((msg, idx) => (
-                        <div 
-                          key={idx}
-                          style={{
-                            padding: 12,
-                            borderRadius: 8,
-                            background: msg.role === 'user' ? '#e3f2fd' : '#fff',
-                            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                            maxWidth: '85%',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                          }}
-                        >
-                          <div style={{ fontSize: 11, fontWeight: 'bold', color: '#666', marginBottom: 4, textTransform: 'uppercase' }}>
-                            {msg.role === 'user' ? 'You' : 'AI Assistant'}
-                          </div>
-                          <div style={{ fontSize: 14, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                        </div>
-                      ))}
-                      {loadingChat && (
-                        <div style={{ padding: 12, borderRadius: 8, background: '#fff', alignSelf: 'flex-start', maxWidth: '85%' }}>
-                          <div style={{ fontSize: 14, color: '#666', fontStyle: 'italic' }}>Thinking...</div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={e => setChatInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && !loadingChat && onSendChat()}
-                    placeholder="Ask about your writing..."
-                    disabled={loadingChat}
-                    style={{
-                      flex: 1,
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: 4,
-                      fontSize: 14
-                    }}
-                  />
-                  <button
-                    onClick={onSendChat}
-                    disabled={loadingChat || !chatInput.trim()}
-                    style={{
-                      padding: '8px 16px',
-                      background: loadingChat || !chatInput.trim() ? '#ccc' : '#2196f3',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 4,
-                      cursor: loadingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
-                      fontSize: 14,
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    Send
-                  </button>
-                </div>
+            {/* Bottom: Chat Input */}
+            <div style={{ borderTop: '2px solid #ddd', padding: 12, background: '#fafafa' }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 14, fontWeight: 'bold', color: '#666', minWidth: 120 }}>AI Assistant:</span>
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && !loadingChat && onSendChat()}
+                  placeholder="Ask about your writing (auto-selects best model)..."
+                  disabled={loadingChat}
+                  style={{
+                    flex: 1,
+                    padding: '10px 12px',
+                    border: '1px solid #ddd',
+                    borderRadius: 4,
+                    fontSize: 14
+                  }}
+                />
+                <button
+                  onClick={onSendChat}
+                  disabled={loadingChat || !chatInput.trim()}
+                  style={{
+                    padding: '10px 20px',
+                    background: loadingChat || !chatInput.trim() ? '#ccc' : '#2196f3',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    cursor: loadingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {loadingChat ? 'Thinking...' : 'Ask'}
+                </button>
               </div>
+              {chatMessages.length > 0 && (
+                <div style={{ marginTop: 8, padding: 8, background: '#fff', borderRadius: 4, maxHeight: 100, overflow: 'auto' }}>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    <strong>Last response:</strong> {chatMessages[chatMessages.length - 1].content.substring(0, 200)}
+                    {chatMessages[chatMessages.length - 1].content.length > 200 ? '...' : ''}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )
