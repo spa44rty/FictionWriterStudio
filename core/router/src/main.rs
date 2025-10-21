@@ -8,6 +8,7 @@ mod scheduler;
 mod guards;
 mod canon_check;
 mod heuristics;
+mod spellcheck;
 
 #[tokio::main]
 async fn main() {

@@ -1,7 +1,8 @@
 use axum::Json;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+use crate::spellcheck;
 
 #[derive(Deserialize)]
 pub struct HeurReq {
@@ -25,6 +26,7 @@ pub async fn analyze(Json(req): Json<HeurReq>) -> Json<HeurResp> {
     let mut issues = Vec::new();
     let text = &req.text;
 
+    issues.extend(check_spelling(text));
     issues.extend(check_adverbs(text));
     issues.extend(check_fillers(text));
     issues.extend(check_weak_starters(text));
@@ -396,6 +398,22 @@ fn check_double_spaces(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Multiple spaces - clean up formatting".into(),
             severity: "info".into(),
+        });
+    }
+    issues
+}
+
+fn check_spelling(text: &str) -> Vec<Issue> {
+    let mut issues = Vec::new();
+    let spelling_errors = spellcheck::check_spelling(text);
+    
+    for (start, end, word) in spelling_errors {
+        issues.push(Issue {
+            kind: "spelling".into(),
+            start,
+            end,
+            message: format!("Possible spelling error: '{}'", word),
+            severity: "error".into(),
         });
     }
     issues

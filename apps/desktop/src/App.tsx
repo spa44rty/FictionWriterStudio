@@ -26,7 +26,7 @@ function useApi() {
 
 export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('editor')
-  const [text, setText] = useState<string>(`He was very cold. Then he realized it was absolutely late. She walked slowly and quietly through the dark corridor—her heart beating. At the end of the day, it was really just a matter of time before everything was discovered. He had been thinking that maybe, perhaps, it might be possible. The character felt scared and noticed the shadows.`)
+  const [text, setText] = useState<string>(`He waz very coldd. Then he realizd it was absolutly late. She walkked slowely and quietley through the darkk corrider—her hart beetingg. At the end of the day, it was realy just a mater of time before evrything was discovred.`)
   const [issues, setIssues] = useState<any[]>([])
   const { heuristics } = useApi()
 
