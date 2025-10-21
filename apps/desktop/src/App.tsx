@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStoryStore } from './store'
 import { BibleSection } from './components/BibleSection'
 import { CharacterList } from './components/CharacterList'
@@ -57,6 +57,10 @@ export default function App() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState('')
   const [loadingChat, setLoadingChat] = useState(false)
+  const [leftWidth, setLeftWidth] = useState(280)
+  const [rightWidth, setRightWidth] = useState(320)
+  const [isDraggingLeft, setIsDraggingLeft] = useState(false)
+  const [isDraggingRight, setIsDraggingRight] = useState(false)
   const { heuristics, minorEdit } = useApi()
 
   const store = useStoryStore()
@@ -128,6 +132,39 @@ Provide helpful, specific advice about their writing. If they ask about fixing i
       setLoadingChat(false)
     }
   }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingLeft) {
+        const newWidth = Math.max(200, Math.min(500, e.clientX))
+        setLeftWidth(newWidth)
+      }
+      if (isDraggingRight) {
+        const newWidth = Math.max(200, Math.min(600, window.innerWidth - e.clientX))
+        setRightWidth(newWidth)
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDraggingLeft(false)
+      setIsDraggingRight(false)
+    }
+
+    if (isDraggingLeft || isDraggingRight) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+    } else {
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDraggingLeft, isDraggingRight])
 
   const navItems: { section: Section; label: string }[] = [
     { section: 'braindump', label: 'Braindump' },
@@ -324,8 +361,8 @@ Provide helpful, specific advice about their writing. If they ask about fixing i
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 320px', height: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <aside style={{ borderRight: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
+    <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <aside style={{ width: leftWidth, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto', flexShrink: 0 }}>
         <h3 style={{ marginTop: 0 }}>Story Bible</h3>
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {navItems.map(item => (
@@ -377,11 +414,33 @@ Provide helpful, specific advice about their writing. If they ask about fixing i
         )}
       </aside>
 
-      <main style={{ overflow: 'auto', background: '#fafafa' }}>
+      <div 
+        style={{ 
+          width: 5, 
+          cursor: 'col-resize', 
+          background: '#ddd',
+          flexShrink: 0,
+          transition: isDraggingLeft ? 'none' : 'background 0.2s'
+        }}
+        onMouseDown={() => setIsDraggingLeft(true)}
+      />
+
+      <main style={{ flex: 1, overflow: 'auto', background: '#fafafa' }}>
         {renderContent()}
       </main>
 
-      <aside style={{ borderLeft: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
+      <div 
+        style={{ 
+          width: 5, 
+          cursor: 'col-resize', 
+          background: '#ddd',
+          flexShrink: 0,
+          transition: isDraggingRight ? 'none' : 'background 0.2s'
+        }}
+        onMouseDown={() => setIsDraggingRight(true)}
+      />
+
+      <aside style={{ width: rightWidth, borderLeft: '1px solid #ddd', padding: 12, overflow: 'auto', flexShrink: 0 }}>
         {activeSection === 'editor' ? (
           <>
             <h3>Issues ({issues.length})</h3>
