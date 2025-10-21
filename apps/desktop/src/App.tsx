@@ -38,6 +38,9 @@ function useApi() {
       method: 'POST', headers: {'content-type': 'application/json'},
       body: JSON.stringify({ text, model, style: { tense: 'past', pov: 'close-third', narrative_contractions: false, dialogue_contractions: true, ban_em_dashes: true }, citations: [] })
     })
+    if (!res.ok) {
+      throw new Error(`API returned ${res.status}: ${res.statusText}`)
+    }
     return res.json()
   }
   async function chat(prompt: string, model: string, context?: string) {
@@ -74,19 +77,25 @@ export default function App() {
 
   async function onAnalyze() {
     setLoadingSuggestions(true)
+    setIssues([])
+    setSuggestions([])
+    
     try {
       const r = await heuristics(text)
       setIssues(r.issues || [])
       
       if (r.issues && r.issues.length > 0) {
-        const aiResult = await minorEdit(text, store.models.medium)
-        setSuggestions(aiResult.edits || [])
-      } else {
-        setSuggestions([])
+        try {
+          const aiResult = await minorEdit(text, store.models.medium)
+          setSuggestions(aiResult.edits || [])
+        } catch (aiErr) {
+          console.error('AI suggestion error:', aiErr)
+          alert('Found issues, but could not get AI suggestions. Make sure Ollama is running with the medium model installed.')
+        }
       }
     } catch (err) {
       console.error('Analysis error:', err)
-      alert('Could not complete analysis. Make sure Ollama is running with a model installed.')
+      alert('Could not run analysis. Check that the backend is running on port 8000.')
     } finally {
       setLoadingSuggestions(false)
     }
@@ -108,19 +117,29 @@ export default function App() {
   function selectModelForPrompt(prompt: string): string {
     const lower = prompt.toLowerCase()
     
-    const largeModelKeywords = ['rewrite', 'regenerate', 'completely', 'major', 'comprehensive', 'rebuild', 'restructure', 'transform']
-    const mediumModelKeywords = ['fix', 'correct', 'improve', 'suggest', 'edit', 'change', 'revise', 'polish', 'refine', 'enhance']
-    
-    for (const keyword of largeModelKeywords) {
-      if (lower.includes(keyword)) {
-        return store.models.large
-      }
+    const hasKeyword = (keywords: string[]) => {
+      return keywords.some(keyword => {
+        const pattern = new RegExp(`\\b${keyword.replace('-', '[-\\s]?')}\\b`, 'i')
+        return pattern.test(lower)
+      })
     }
     
-    for (const keyword of mediumModelKeywords) {
-      if (lower.includes(keyword)) {
-        return store.models.medium
-      }
+    const largeModelKeywords = [
+      'rewrite', 're-write', 'regenerate', 'completely rewrite', 'complete rewrite',
+      'major rewrite', 'major change', 'major restructure', 'comprehensive rewrite',
+      'rebuild', 'restructure', 'transform completely', 'start over', 'from scratch'
+    ]
+    const mediumModelKeywords = [
+      'fix', 'correct', 'improve', 'suggest', 'edit', 'revise', 'polish', 'refine', 
+      'enhance', 'better phrasing', 'rephrase', 'adjust', 'tweak', 'modify'
+    ]
+    
+    if (hasKeyword(largeModelKeywords)) {
+      return store.models.large
+    }
+    
+    if (hasKeyword(mediumModelKeywords)) {
+      return store.models.medium
     }
     
     return store.models.small
