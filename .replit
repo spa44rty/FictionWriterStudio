@@ -50,7 +50,3 @@ externalPort = 80
 localPort = 8000
 externalPort = 8000
 exposeLocalhost = true
-
-[[ports]]
-localPort = 35467
-externalPort = 3000
