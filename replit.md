@@ -4,6 +4,7 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-21: Implemented comprehensive prose quality analysis engine with 15+ checks
 - 2025-10-21: Added Story Bible data entry forms with character limits and character management
 - 2025-10-21: Initial scaffold created with router service, React UI, and JSON schemas
 
@@ -27,16 +28,31 @@ An offline-first desktop writing application built with Tauri + React + Rust for
 - **Version Control**: Git for auto-commits
 
 ### Router API Endpoints
-- `POST /api/heuristics` - Deterministic rule checks (adverbs, fillers, em-dashes, weak starters)
+- `POST /api/heuristics` - Comprehensive prose quality analysis (15+ checks)
 - `POST /api/minor_edit` - LLM-powered minor line edits via Ollama
 
-### Heuristic Rules
-The deterministic engine detects:
-- Adverbs ending in "ly"
-- Filler words (really, very, just, quite)
-- Weak sentence starters (Then, And, But)
-- Em dashes (banned in narration by default)
-- Future: contractions, passive voice, body-part subjects
+### Comprehensive Analysis Checks
+The deterministic engine performs 15+ quality checks:
+1. **Adverbs** - Detects -ly words (with exceptions like "early", "only", "friendly")
+2. **Filler words** - really, very, just, quite, actually, basically, literally, etc.
+3. **Weak sentence starters** - Then, And, But, So, Well, Now, Also, Still, Yet
+4. **Em dashes** - Banned in narration per style guide (ERROR severity)
+5. **Weak verbs** - is, was, were, had, has, have, do, does, did, get, got
+6. **Clichés** - 30+ common phrases like "at the end of the day", "a matter of time"
+7. **Prepositional chains** - 3+ consecutive prepositional phrases
+8. **Punctuation** - Double punctuation, missing commas after transition words
+9. **Repetitive words** - Same word repeated within a sentence
+10. **Sentence pacing** - Long sentences (>35 words), very short sentences, monotonous rhythm
+11. **Passive voice** - Detects be-verbs + past participles (including irregular: given, taken, seen, etc.)
+12. **Hedging words** - seems, appears, probably, possibly, maybe, perhaps, might
+13. **Telling words** - "felt that", "thought that", "realized how", "noticed that"
+14. **Conjunction chains** - Too many and/but/or in sequence
+15. **Double spaces** - Formatting cleanup
+
+**Severity Levels:**
+- **ERROR** (red) - Style guide violations (em-dashes, double punctuation)
+- **WARNING** (orange) - Weak prose (adverbs, clichés, passive voice, fillers)
+- **INFO** (blue) - Suggestions (pacing, hedging, weak starters, telling)
 
 ### Style Guide Enforcement
 - No contractions in narration (dialogue may contract)
