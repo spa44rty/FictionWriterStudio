@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useStoryStore } from './store'
 import { BibleSection } from './components/BibleSection'
 import { CharacterList } from './components/CharacterList'
@@ -28,28 +28,13 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('editor')
   const [text, setText] = useState<string>(`He was very cold. It was late.`)
   const [issues, setIssues] = useState<any[]>([])
-  const [edits, setEdits] = useState<any[]>([])
-  const { heuristics, minorEdit } = useApi()
+  const { heuristics } = useApi()
 
   const store = useStoryStore()
 
   async function onAnalyze() {
     const r = await heuristics(text)
     setIssues(r.issues || [])
-  }
-  async function onMinorEdit() {
-    const r = await minorEdit(text, 'llama3.1:8b')
-    setEdits(r.edits || [])
-  }
-  function applyEdits() {
-    if (edits.length === 0) return
-    const lines = text.split('\n')
-    for (const e of edits) {
-      const idx = (e.line - 1) as number
-      lines[idx] = e.new
-    }
-    setText(lines.join('\n'))
-    setEdits([])
   }
 
   const navItems: { section: Section; label: string }[] = [
@@ -193,12 +178,6 @@ export default function App() {
               <button onClick={onAnalyze} style={{ padding: '8px 12px', cursor: 'pointer' }}>
                 Analyze
               </button>
-              <button onClick={onMinorEdit} style={{ padding: '8px 12px', cursor: 'pointer' }}>
-                Minor Edit
-              </button>
-              <button onClick={applyEdits} style={{ padding: '8px 12px', cursor: 'pointer' }}>
-                Apply Edits
-              </button>
             </div>
           </>
         )}
@@ -221,24 +200,11 @@ export default function App() {
                 ))}
               </ul>
             )}
-            <h3 style={{ marginTop: 16 }}>Edits</h3>
-            {edits.length === 0 ? <p>No pending edits.</p> : (
-              <ul style={{ fontSize: 13 }}>
-                {edits.map((e, idx) => (
-                  <li key={idx}>
-                    <strong>Line {e.line}</strong><br />
-                    <em>Old:</em> {e.old}<br />
-                    <em>New:</em> {e.new}<br />
-                    {e.rationale}
-                  </li>
-                ))}
-              </ul>
-            )}
           </>
         ) : (
           <div style={{ padding: 16, color: '#666', fontSize: 14 }}>
             <h3>Reference Panel</h3>
-            <p>This panel shows issues and edits when using the Scene Editor.</p>
+            <p>This panel shows issues when analyzing scenes in the Scene Editor.</p>
             <p style={{ marginTop: 16 }}>Your Story Bible data is saved automatically as you type.</p>
           </div>
         )}
