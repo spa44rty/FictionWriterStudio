@@ -43,12 +43,20 @@ function useApi() {
   return { heuristics, minorEdit }
 }
 
+interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('editor')
   const [text, setText] = useState<string>(`He waz very coldd. Then he realizd it was absolutly late. She walkked slowely and quietley through the darkk corrider—her hart beetingg. At the end of the day, it was realy just a mater of time before evrything was discovred.`)
   const [issues, setIssues] = useState<any[]>([])
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [loadingChat, setLoadingChat] = useState(false)
   const { heuristics, minorEdit } = useApi()
 
   const store = useStoryStore()
@@ -82,6 +90,43 @@ export default function App() {
 
   function rejectSuggestion(edit: any) {
     setSuggestions(suggestions.filter(s => s !== edit))
+  }
+
+  async function onSendChat() {
+    if (!chatInput.trim()) return
+    
+    const userMessage: ChatMessage = { role: 'user', content: chatInput }
+    setChatMessages(prev => [...prev, userMessage])
+    setChatInput('')
+    setLoadingChat(true)
+
+    try {
+      const prompt = `You are a writing assistant helping with fiction editing. The user is working on this text:
+
+---
+${text}
+---
+
+User question: ${chatInput}
+
+Provide helpful, specific advice about their writing. If they ask about fixing issues, suggest specific improvements. Keep responses concise and actionable.`
+
+      const response = await minorEdit(prompt, 'llama3.2:latest')
+      const assistantMessage: ChatMessage = { 
+        role: 'assistant', 
+        content: response.edits?.[0]?.new || 'I can help you improve your writing. Try asking about specific issues or request suggestions for improvements.'
+      }
+      setChatMessages(prev => [...prev, assistantMessage])
+    } catch (err) {
+      console.error('Chat error:', err)
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: 'Sorry, I cannot respond right now. Make sure Ollama is running with a model installed.'
+      }
+      setChatMessages(prev => [...prev, errorMessage])
+    } finally {
+      setLoadingChat(false)
+    }
   }
 
   const navItems: { section: Section; label: string }[] = [
@@ -168,23 +213,111 @@ export default function App() {
         )
       case 'editor':
         return (
-          <div style={{ padding: 12, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2>Scene Editor</h2>
-            <textarea
-              value={text}
-              onChange={e => setText(e.target.value)}
-              style={{
-                flex: 1,
-                width: '100%',
-                fontFamily: 'serif',
-                fontSize: 18,
-                lineHeight: 1.6,
-                padding: 12,
-                border: '1px solid #ddd',
-                borderRadius: 4,
-                resize: 'none'
-              }}
-            />
+          <div style={{ padding: 12, height: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ flex: '1 1 60%', display: 'flex', flexDirection: 'column' }}>
+              <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
+              <textarea
+                value={text}
+                onChange={e => setText(e.target.value)}
+                style={{
+                  flex: 1,
+                  width: '100%',
+                  fontFamily: 'serif',
+                  fontSize: 18,
+                  lineHeight: 1.6,
+                  padding: 12,
+                  border: '1px solid #ddd',
+                  borderRadius: 4,
+                  resize: 'none'
+                }}
+              />
+            </div>
+
+            <div style={{ flex: '0 1 40%', display: 'flex', flexDirection: 'column', borderTop: '2px solid #ddd', paddingTop: 12 }}>
+              <h3 style={{ marginTop: 0, marginBottom: 8 }}>AI Writing Assistant</h3>
+              
+              <div style={{ 
+                flex: 1, 
+                overflow: 'auto', 
+                padding: 12, 
+                background: '#f5f5f5', 
+                borderRadius: 4, 
+                marginBottom: 8,
+                minHeight: 150
+              }}>
+                {chatMessages.length === 0 ? (
+                  <div style={{ color: '#666', fontSize: 14, fontStyle: 'italic' }}>
+                    Ask me anything about your writing! Examples:
+                    <ul style={{ marginTop: 8 }}>
+                      <li>How can I fix the spelling errors?</li>
+                      <li>What are the main issues with this text?</li>
+                      <li>Suggest a better way to phrase the second sentence</li>
+                      <li>How can I make this more engaging?</li>
+                    </ul>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {chatMessages.map((msg, idx) => (
+                      <div 
+                        key={idx}
+                        style={{
+                          padding: 12,
+                          borderRadius: 8,
+                          background: msg.role === 'user' ? '#e3f2fd' : '#fff',
+                          alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                          maxWidth: '85%',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        <div style={{ fontSize: 11, fontWeight: 'bold', color: '#666', marginBottom: 4, textTransform: 'uppercase' }}>
+                          {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                        </div>
+                        <div style={{ fontSize: 14, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                      </div>
+                    ))}
+                    {loadingChat && (
+                      <div style={{ padding: 12, borderRadius: 8, background: '#fff', alignSelf: 'flex-start', maxWidth: '85%' }}>
+                        <div style={{ fontSize: 14, color: '#666', fontStyle: 'italic' }}>Thinking...</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && !loadingChat && onSendChat()}
+                  placeholder="Ask about your writing..."
+                  disabled={loadingChat}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    border: '1px solid #ddd',
+                    borderRadius: 4,
+                    fontSize: 14
+                  }}
+                />
+                <button
+                  onClick={onSendChat}
+                  disabled={loadingChat || !chatInput.trim()}
+                  style={{
+                    padding: '8px 16px',
+                    background: loadingChat || !chatInput.trim() ? '#ccc' : '#2196f3',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    cursor: loadingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Send
+                </button>
+              </div>
+            </div>
           </div>
         )
     }

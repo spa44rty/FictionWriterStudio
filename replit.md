@@ -4,7 +4,11 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
-- 2025-10-21: Implemented comprehensive prose quality analysis engine with 15+ checks
+- 2025-10-21: Added AI Writing Assistant chat interface at bottom of Scene Editor for conversational help
+- 2025-10-21: Added "Get AI Suggestions" button with line-by-line edit approval workflow
+- 2025-10-21: Fixed CORS configuration to enable frontend-backend communication
+- 2025-10-21: Implemented spell-checking with embedded common words list (~200 words for demo)
+- 2025-10-21: Implemented comprehensive prose quality analysis engine with 16+ checks
 - 2025-10-21: Added Story Bible data entry forms with character limits and character management
 - 2025-10-21: Initial scaffold created with router service, React UI, and JSON schemas
 
@@ -83,6 +87,21 @@ The deterministic engine performs 15+ quality checks:
   - Background
 - All sections have character counters that turn red when over limit
 - Navigation between sections via clickable sidebar
+
+### Scene Editor Features
+- **Prose Analysis**: "Analyze" button runs 16+ deterministic checks for spelling, grammar, style violations
+- **AI Suggestions**: "Get AI Suggestions" button generates LLM-powered line-by-line improvements
+  - Shows old vs new text in red/green boxes
+  - Individual Apply/Reject buttons for each suggestion
+  - Respects style guide rules
+- **AI Writing Assistant Chat**: Interactive chat interface at bottom of editor
+  - Ask questions about your writing ("How can I fix the spelling errors?")
+  - Get specific advice and suggestions
+  - Context-aware responses based on current text
+  - Natural conversation flow with message history
+  - Press Enter or click Send to submit messages
+- **Issues Panel**: Right sidebar shows color-coded issues (red=errors, orange=warnings, blue=suggestions)
+- **Split Layout**: 60% writing area, 40% chat interface for optimal workflow
 
 ## Development Notes
 - Router runs on port 8000 (changed from 8765 due to Replit restrictions)
