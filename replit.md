@@ -4,13 +4,14 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-21: Reorganized UI layout - Scene Editor on top, Issues/Suggestions and Chat side-by-side on bottom
 - 2025-10-21: Implemented intelligent automatic model selection based on chat prompts
 - 2025-10-21: Enhanced "Analyze" button to flag issues AND suggest AI corrections
 - 2025-10-21: Removed separate "Get AI Suggestions" and "Major Rewrite" buttons (auto-switching handles this)
 - 2025-10-21: Added `/api/chat` endpoint for conversational AI assistance
 - 2025-10-21: Implemented three-tier AI model system (small/medium/large) with configurable settings
-- 2025-10-21: Added resizable side panes with drag handles for customizable layout
-- 2025-10-21: Added AI Writing Assistant chat interface at bottom of Scene Editor for conversational help
+- 2025-10-21: Added resizable left pane with drag handle for Story Bible navigation
+- 2025-10-21: Added AI Writing Assistant chat interface for conversational help
 - 2025-10-21: Fixed CORS configuration to enable frontend-backend communication
 - 2025-10-21: Implemented spell-checking with embedded common words list (~200 words for demo)
 - 2025-10-21: Implemented comprehensive prose quality analysis engine with 16+ checks
@@ -94,6 +95,14 @@ The deterministic engine performs 15+ quality checks:
 - All sections have character counters that turn red when over limit
 - Navigation between sections via clickable sidebar
 
+### Scene Editor Layout
+- **Three-panel layout for optimal workflow:**
+  - **Left Panel**: Story Bible navigation and Editor Controls button
+  - **Top Half**: Scene Editor textarea for writing
+  - **Bottom Half**: Split into two sections:
+    - **Left**: Issues & Suggestions panel
+    - **Right**: AI Writing Assistant chat
+
 ### Scene Editor Features
 - **Prose Analysis**: "Analyze & Suggest Fixes" button runs 16+ deterministic checks AND provides AI-powered corrections
   - Flags spelling, grammar, and style violations
@@ -102,7 +111,10 @@ The deterministic engine performs 15+ quality checks:
   - Individual Apply/Reject buttons for each suggestion
   - Respects style guide rules
   - Uses medium model for balanced speed and quality
-- **AI Writing Assistant Chat**: Interactive chat interface at bottom of editor
+- **Issues & Suggestions Panel**: Bottom-left shows color-coded issues and AI suggestions
+  - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity levels
+  - **AI Suggestions**: Line-by-line edits with Apply/Reject controls
+- **AI Writing Assistant Chat**: Bottom-right interactive chat interface
   - Ask questions about your writing ("How can I fix the spelling errors?")
   - **Intelligent automatic model selection** based on your prompt:
     - Simple questions/explanations → Small model (fast)
@@ -112,8 +124,6 @@ The deterministic engine performs 15+ quality checks:
   - Natural conversation flow with message history
   - Press Enter or click Send to submit messages
   - See which model was used in the response
-- **Issues Panel**: Right sidebar shows color-coded issues (red=errors, orange=warnings, blue=suggestions)
-- **Split Layout**: 60% writing area, 40% chat interface for optimal workflow
 
 ## Development Notes
 - Router runs on port 8000 (changed from 8765 due to Replit restrictions)

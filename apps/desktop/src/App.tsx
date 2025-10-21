@@ -68,9 +68,7 @@ export default function App() {
   const [chatInput, setChatInput] = useState('')
   const [loadingChat, setLoadingChat] = useState(false)
   const [leftWidth, setLeftWidth] = useState(280)
-  const [rightWidth, setRightWidth] = useState(320)
   const [isDraggingLeft, setIsDraggingLeft] = useState(false)
-  const [isDraggingRight, setIsDraggingRight] = useState(false)
   const { heuristics, minorEdit, chat } = useApi()
 
   const store = useStoryStore()
@@ -184,18 +182,13 @@ export default function App() {
         const newWidth = Math.max(200, Math.min(500, e.clientX))
         setLeftWidth(newWidth)
       }
-      if (isDraggingRight) {
-        const newWidth = Math.max(200, Math.min(600, window.innerWidth - e.clientX))
-        setRightWidth(newWidth)
-      }
     }
 
     const handleMouseUp = () => {
       setIsDraggingLeft(false)
-      setIsDraggingRight(false)
     }
 
-    if (isDraggingLeft || isDraggingRight) {
+    if (isDraggingLeft) {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
       document.body.style.cursor = 'col-resize'
@@ -209,7 +202,7 @@ export default function App() {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDraggingLeft, isDraggingRight])
+  }, [isDraggingLeft])
 
   const navItems: { section: Section; label: string }[] = [
     { section: 'braindump', label: 'Braindump' },
@@ -367,8 +360,9 @@ export default function App() {
         )
       case 'editor':
         return (
-          <div style={{ padding: 12, height: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ flex: '1 1 60%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/* Top Half: Scene Editor */}
+            <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', padding: 12, borderBottom: '2px solid #ddd' }}>
               <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
               <textarea
                 value={text}
@@ -387,88 +381,189 @@ export default function App() {
               />
             </div>
 
-            <div style={{ flex: '0 1 40%', display: 'flex', flexDirection: 'column', borderTop: '2px solid #ddd', paddingTop: 12 }}>
-              <h3 style={{ marginTop: 0, marginBottom: 8 }}>AI Writing Assistant</h3>
-              
-              <div style={{ 
-                flex: 1, 
-                overflow: 'auto', 
-                padding: 12, 
-                background: '#f5f5f5', 
-                borderRadius: 4, 
-                marginBottom: 8,
-                minHeight: 150
-              }}>
-                {chatMessages.length === 0 ? (
-                  <div style={{ color: '#666', fontSize: 14, fontStyle: 'italic' }}>
-                    Ask me anything about your writing! The AI automatically chooses the best model:
-                    <ul style={{ marginTop: 8, fontSize: 13 }}>
-                      <li><strong>Small model:</strong> "What are the main issues?" or "Explain this grammar rule"</li>
-                      <li><strong>Medium model:</strong> "Fix the spelling errors" or "Suggest better phrasing"</li>
-                      <li><strong>Large model:</strong> "Completely rewrite this paragraph" or "Major restructure needed"</li>
+            {/* Bottom Half: Suggested Edits & Chat */}
+            <div style={{ flex: '1 1 50%', display: 'flex', overflow: 'hidden' }}>
+              {/* Suggested Edits Section */}
+              <div style={{ flex: '1 1 50%', borderRight: '1px solid #ddd', padding: 12, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ marginTop: 0, marginBottom: 12 }}>Issues & Suggestions</h3>
+                
+                {/* Issues */}
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ fontSize: 14, marginBottom: 8, color: '#666' }}>Issues ({issues.length})</h4>
+                  {issues.length === 0 ? (
+                    <p style={{ fontSize: 13, color: '#999' }}>No issues found. Your prose looks clean!</p>
+                  ) : (
+                    <ul style={{ fontSize: 13, listStyle: 'none', padding: 0, margin: 0 }}>
+                      {issues.map((i, idx) => {
+                        const severityColors = {
+                          error: '#dc3545',
+                          warning: '#ff9800',
+                          info: '#2196f3'
+                        };
+                        const color = severityColors[i.severity as keyof typeof severityColors] || '#666';
+                        return (
+                          <li key={idx} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                              <span style={{ 
+                                fontSize: 10, 
+                                fontWeight: 'bold', 
+                                color: '#fff',
+                                background: color,
+                                padding: '2px 6px',
+                                borderRadius: 3,
+                                textTransform: 'uppercase'
+                              }}>{i.severity}</span>
+                              <code style={{ fontSize: 11, color: '#666' }}>{i.kind}</code>
+                            </div>
+                            <div style={{ fontSize: 12, marginTop: 4 }}>{i.message}</div>
+                          </li>
+                        );
+                      })}
                     </ul>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {chatMessages.map((msg, idx) => (
-                      <div 
-                        key={idx}
-                        style={{
-                          padding: 12,
-                          borderRadius: 8,
-                          background: msg.role === 'user' ? '#e3f2fd' : '#fff',
-                          alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                          maxWidth: '85%',
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                        }}
-                      >
-                        <div style={{ fontSize: 11, fontWeight: 'bold', color: '#666', marginBottom: 4, textTransform: 'uppercase' }}>
-                          {msg.role === 'user' ? 'You' : 'AI Assistant'}
-                        </div>
-                        <div style={{ fontSize: 14, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                      </div>
-                    ))}
-                    {loadingChat && (
-                      <div style={{ padding: 12, borderRadius: 8, background: '#fff', alignSelf: 'flex-start', maxWidth: '85%' }}>
-                        <div style={{ fontSize: 14, color: '#666', fontStyle: 'italic' }}>Thinking...</div>
-                      </div>
-                    )}
+                  )}
+                </div>
+
+                {/* AI Suggestions */}
+                {suggestions.length > 0 && (
+                  <div>
+                    <h4 style={{ fontSize: 14, marginBottom: 8, color: '#666' }}>AI Suggestions ({suggestions.length})</h4>
+                    <ul style={{ fontSize: 13, listStyle: 'none', padding: 0, margin: 0 }}>
+                      {suggestions.map((edit, idx) => (
+                        <li key={idx} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
+                          <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>Line {edit.line}</div>
+                          <div style={{ fontSize: 12, padding: 8, background: '#ffe0e0', borderRadius: 4, marginBottom: 4 }}>
+                            <strong>Old:</strong> {edit.old}
+                          </div>
+                          <div style={{ fontSize: 12, padding: 8, background: '#e0ffe0', borderRadius: 4, marginBottom: 8 }}>
+                            <strong>New:</strong> {edit.new}
+                          </div>
+                          {edit.rationale && (
+                            <div style={{ fontSize: 11, color: '#666', fontStyle: 'italic', marginBottom: 8 }}>
+                              {edit.rationale}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button 
+                              onClick={() => applySuggestion(edit)}
+                              style={{ 
+                                flex: 1, 
+                                padding: '6px 12px', 
+                                background: '#4caf50', 
+                                color: '#fff', 
+                                border: 'none', 
+                                borderRadius: 4, 
+                                cursor: 'pointer',
+                                fontSize: 12
+                              }}
+                            >
+                              Apply
+                            </button>
+                            <button 
+                              onClick={() => rejectSuggestion(edit)}
+                              style={{ 
+                                flex: 1, 
+                                padding: '6px 12px', 
+                                background: '#f44336', 
+                                color: '#fff', 
+                                border: 'none', 
+                                borderRadius: 4, 
+                                cursor: 'pointer',
+                                fontSize: 12
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
 
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && !loadingChat && onSendChat()}
-                  placeholder="Ask about your writing..."
-                  disabled={loadingChat}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: 4,
-                    fontSize: 14
-                  }}
-                />
-                <button
-                  onClick={onSendChat}
-                  disabled={loadingChat || !chatInput.trim()}
-                  style={{
-                    padding: '8px 16px',
-                    background: loadingChat || !chatInput.trim() ? '#ccc' : '#2196f3',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 4,
-                    cursor: loadingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
-                    fontSize: 14,
-                    fontWeight: 'bold'
-                  }}
-                >
-                  Send
-                </button>
+              {/* Chat Section */}
+              <div style={{ flex: '1 1 50%', padding: 12, display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ marginTop: 0, marginBottom: 8 }}>AI Writing Assistant</h3>
+                
+                <div style={{ 
+                  flex: 1, 
+                  overflow: 'auto', 
+                  padding: 12, 
+                  background: '#f5f5f5', 
+                  borderRadius: 4, 
+                  marginBottom: 8
+                }}>
+                  {chatMessages.length === 0 ? (
+                    <div style={{ color: '#666', fontSize: 13, fontStyle: 'italic' }}>
+                      Ask me anything! The AI automatically chooses the best model:
+                      <ul style={{ marginTop: 8, fontSize: 12 }}>
+                        <li><strong>Small:</strong> "What issues?" or "Explain this rule"</li>
+                        <li><strong>Medium:</strong> "Fix spelling" or "Better phrasing"</li>
+                        <li><strong>Large:</strong> "Rewrite paragraph" or "Major restructure"</li>
+                      </ul>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {chatMessages.map((msg, idx) => (
+                        <div 
+                          key={idx}
+                          style={{
+                            padding: 12,
+                            borderRadius: 8,
+                            background: msg.role === 'user' ? '#e3f2fd' : '#fff',
+                            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                            maxWidth: '85%',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          <div style={{ fontSize: 11, fontWeight: 'bold', color: '#666', marginBottom: 4, textTransform: 'uppercase' }}>
+                            {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                          </div>
+                          <div style={{ fontSize: 14, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                        </div>
+                      ))}
+                      {loadingChat && (
+                        <div style={{ padding: 12, borderRadius: 8, background: '#fff', alignSelf: 'flex-start', maxWidth: '85%' }}>
+                          <div style={{ fontSize: 14, color: '#666', fontStyle: 'italic' }}>Thinking...</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !loadingChat && onSendChat()}
+                    placeholder="Ask about your writing..."
+                    disabled={loadingChat}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      border: '1px solid #ddd',
+                      borderRadius: 4,
+                      fontSize: 14
+                    }}
+                  />
+                  <button
+                    onClick={onSendChat}
+                    disabled={loadingChat || !chatInput.trim()}
+                    style={{
+                      padding: '8px 16px',
+                      background: loadingChat || !chatInput.trim() ? '#ccc' : '#2196f3',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 4,
+                      cursor: loadingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                      fontSize: 14,
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Send
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -542,120 +637,9 @@ export default function App() {
         onMouseDown={() => setIsDraggingLeft(true)}
       />
 
-      <main style={{ flex: 1, overflow: 'auto', background: '#fafafa' }}>
+      <main style={{ flex: 1, overflow: 'hidden', background: '#fafafa' }}>
         {renderContent()}
       </main>
-
-      <div 
-        style={{ 
-          width: 5, 
-          cursor: 'col-resize', 
-          background: '#ddd',
-          flexShrink: 0,
-          transition: isDraggingRight ? 'none' : 'background 0.2s'
-        }}
-        onMouseDown={() => setIsDraggingRight(true)}
-      />
-
-      <aside style={{ width: rightWidth, borderLeft: '1px solid #ddd', padding: 12, overflow: 'auto', flexShrink: 0 }}>
-        {activeSection === 'editor' ? (
-          <>
-            <h3>Issues ({issues.length})</h3>
-            {issues.length === 0 ? <p>No issues found. Your prose looks clean!</p> : (
-              <ul style={{ fontSize: 13, listStyle: 'none', padding: 0 }}>
-                {issues.map((i, idx) => {
-                  const severityColors = {
-                    error: '#dc3545',
-                    warning: '#ff9800',
-                    info: '#2196f3'
-                  };
-                  const color = severityColors[i.severity as keyof typeof severityColors] || '#666';
-                  return (
-                    <li key={idx} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                        <span style={{ 
-                          fontSize: 10, 
-                          fontWeight: 'bold', 
-                          color: '#fff',
-                          background: color,
-                          padding: '2px 6px',
-                          borderRadius: 3,
-                          textTransform: 'uppercase'
-                        }}>{i.severity}</span>
-                        <code style={{ fontSize: 11, color: '#666' }}>{i.kind}</code>
-                      </div>
-                      <div style={{ fontSize: 12, marginTop: 4 }}>{i.message}</div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-
-            {suggestions.length > 0 && (
-              <>
-                <hr style={{ margin: '16px 0' }} />
-                <h3>AI Suggestions ({suggestions.length})</h3>
-                <ul style={{ fontSize: 13, listStyle: 'none', padding: 0 }}>
-                  {suggestions.map((edit, idx) => (
-                    <li key={idx} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
-                      <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>Line {edit.line}</div>
-                      <div style={{ fontSize: 12, padding: 8, background: '#ffe0e0', borderRadius: 4, marginBottom: 4 }}>
-                        <strong>Old:</strong> {edit.old}
-                      </div>
-                      <div style={{ fontSize: 12, padding: 8, background: '#e0ffe0', borderRadius: 4, marginBottom: 8 }}>
-                        <strong>New:</strong> {edit.new}
-                      </div>
-                      {edit.rationale && (
-                        <div style={{ fontSize: 11, color: '#666', fontStyle: 'italic', marginBottom: 8 }}>
-                          {edit.rationale}
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button 
-                          onClick={() => applySuggestion(edit)}
-                          style={{ 
-                            flex: 1, 
-                            padding: '6px 12px', 
-                            background: '#4caf50', 
-                            color: '#fff', 
-                            border: 'none', 
-                            borderRadius: 4, 
-                            cursor: 'pointer',
-                            fontSize: 12
-                          }}
-                        >
-                          Apply
-                        </button>
-                        <button 
-                          onClick={() => rejectSuggestion(edit)}
-                          style={{ 
-                            flex: 1, 
-                            padding: '6px 12px', 
-                            background: '#f44336', 
-                            color: '#fff', 
-                            border: 'none', 
-                            borderRadius: 4, 
-                            cursor: 'pointer',
-                            fontSize: 12
-                          }}
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </>
-        ) : (
-          <div style={{ padding: 16, color: '#666', fontSize: 14 }}>
-            <h3>Reference Panel</h3>
-            <p>This panel shows issues when analyzing scenes in the Scene Editor.</p>
-            <p style={{ marginTop: 16 }}>Your Story Bible data is saved automatically as you type.</p>
-          </div>
-        )}
-      </aside>
     </div>
   )
 }
