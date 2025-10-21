@@ -18,7 +18,7 @@ async fn main() {
         .route("/api/heuristics", post(heuristics::analyze))
         .route("/api/minor_edit", post(minor_edit));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8765));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     tracing::info!("router listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();

@@ -2,14 +2,14 @@ import React, { useState } from 'react'
 
 function useApi() {
   async function heuristics(text: string) {
-    const res = await fetch('http://127.0.0.1:8765/api/heuristics', {
+    const res = await fetch('http://127.0.0.1:8000/api/heuristics', {
       method: 'POST', headers: {'content-type': 'application/json'},
       body: JSON.stringify({ text, rules: { ban_em_dashes: true, narrative_contractions: false, max_sentence_words: 28 } })
     })
     return res.json()
   }
   async function minorEdit(text: string, model: string) {
-    const res = await fetch('http://127.0.0.1:8765/api/minor_edit', {
+    const res = await fetch('http://127.0.0.1:8000/api/minor_edit', {
       method: 'POST', headers: {'content-type': 'application/json'},
       body: JSON.stringify({ text, model, style: { tense: 'past', pov: 'close-third', narrative_contractions: false, dialogue_contractions: true, ban_em_dashes: true }, citations: [] })
     })
