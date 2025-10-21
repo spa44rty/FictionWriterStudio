@@ -4,11 +4,13 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-21: Implemented intelligent automatic model selection based on chat prompts
+- 2025-10-21: Enhanced "Analyze" button to flag issues AND suggest AI corrections
+- 2025-10-21: Removed separate "Get AI Suggestions" and "Major Rewrite" buttons (auto-switching handles this)
+- 2025-10-21: Added `/api/chat` endpoint for conversational AI assistance
 - 2025-10-21: Implemented three-tier AI model system (small/medium/large) with configurable settings
-- 2025-10-21: Added "Major Rewrite" button using large model for comprehensive text generation
 - 2025-10-21: Added resizable side panes with drag handles for customizable layout
 - 2025-10-21: Added AI Writing Assistant chat interface at bottom of Scene Editor for conversational help
-- 2025-10-21: Added "Get AI Suggestions" button with line-by-line edit approval workflow
 - 2025-10-21: Fixed CORS configuration to enable frontend-backend communication
 - 2025-10-21: Implemented spell-checking with embedded common words list (~200 words for demo)
 - 2025-10-21: Implemented comprehensive prose quality analysis engine with 16+ checks
@@ -35,8 +37,9 @@ An offline-first desktop writing application built with Tauri + React + Rust for
 - **Version Control**: Git for auto-commits
 
 ### Router API Endpoints
-- `POST /api/heuristics` - Comprehensive prose quality analysis (15+ checks)
-- `POST /api/minor_edit` - LLM-powered minor line edits via Ollama
+- `POST /api/heuristics` - Comprehensive prose quality analysis (16+ checks)
+- `POST /api/minor_edit` - LLM-powered line-by-line edits via Ollama
+- `POST /api/chat` - Conversational AI assistant with automatic model selection
 
 ### Comprehensive Analysis Checks
 The deterministic engine performs 15+ quality checks:
@@ -92,17 +95,23 @@ The deterministic engine performs 15+ quality checks:
 - Navigation between sections via clickable sidebar
 
 ### Scene Editor Features
-- **Prose Analysis**: "Analyze" button runs 16+ deterministic checks for spelling, grammar, style violations
-- **AI Suggestions**: "Get AI Suggestions" button generates LLM-powered line-by-line improvements
+- **Prose Analysis**: "Analyze & Suggest Fixes" button runs 16+ deterministic checks AND provides AI-powered corrections
+  - Flags spelling, grammar, and style violations
+  - Automatically suggests LLM-powered line-by-line improvements
   - Shows old vs new text in red/green boxes
   - Individual Apply/Reject buttons for each suggestion
   - Respects style guide rules
+  - Uses medium model for balanced speed and quality
 - **AI Writing Assistant Chat**: Interactive chat interface at bottom of editor
   - Ask questions about your writing ("How can I fix the spelling errors?")
-  - Get specific advice and suggestions
+  - **Intelligent automatic model selection** based on your prompt:
+    - Simple questions/explanations → Small model (fast)
+    - Fix/improve/edit requests → Medium model (balanced)
+    - Rewrite/regenerate/transform → Large model (highest quality)
   - Context-aware responses based on current text
   - Natural conversation flow with message history
   - Press Enter or click Send to submit messages
+  - See which model was used in the response
 - **Issues Panel**: Right sidebar shows color-coded issues (red=errors, orange=warnings, blue=suggestions)
 - **Split Layout**: 60% writing area, 40% chat interface for optimal workflow
 
@@ -114,28 +123,30 @@ The deterministic engine performs 15+ quality checks:
 - Story Bible data stored in Zustand store (in-memory, persistence pending)
 
 ## AI Model System
-The app uses a **three-tier model strategy** for optimal performance:
+The app uses a **three-tier model strategy** with **automatic intelligent selection**:
 
 ### Small Model (Quick Chat)
 - **Default**: `llama3.2:3b`
-- **Used for**: AI Writing Assistant chat interface
-- **Purpose**: Fast, conversational responses to user questions
+- **Auto-selected for**: Simple questions, explanations, general chat
+- **Keywords**: "what", "how", "why", "explain"
 - **Alternatives**: `phi3`, `gemma2:2b`
 
 ### Medium Model (Analysis & Edits)
 - **Default**: `llama3.2:latest` (7-8B parameters)
-- **Used for**: "Get AI Suggestions" button
-- **Purpose**: Line-by-line edits, spelling corrections, alternative phrasing
+- **Auto-selected for**: Fix/improve requests, "Analyze & Suggest Fixes" button
+- **Keywords**: "fix", "correct", "improve", "suggest", "edit", "change", "revise"
 - **Alternatives**: `mistral`, `qwen2.5:7b`
 
 ### Large Model (Major Rewrites)
 - **Default**: `llama3:70b`
-- **Used for**: "Major Rewrite" button
-- **Purpose**: Comprehensive text generation and major rewrites
+- **Auto-selected for**: Major restructuring, complete rewrites
+- **Keywords**: "rewrite", "regenerate", "completely", "major", "comprehensive"
 - **Alternatives**: `qwen2.5:72b`, `mixtral:8x7b`
 
-### Configuration
-- Models can be changed in the **AI Models** settings page
-- All three models run locally through Ollama
-- No internet connection required after models are downloaded
-- Install models: `ollama pull <model-name>`
+### How It Works
+1. **Analyze button**: Always uses medium model for balanced quality
+2. **Chat interface**: Analyzes your prompt and automatically selects the best model
+3. **Model indication**: Chat responses show which model was used
+4. **Configuration**: Change models in the **AI Models** settings page
+5. **Offline**: All models run locally through Ollama
+6. **Installation**: `ollama pull <model-name>`
