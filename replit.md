@@ -4,6 +4,7 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-21: Added Story Bible data entry forms with character limits and character management
 - 2025-10-21: Initial scaffold created with router service, React UI, and JSON schemas
 
 ## Architecture
@@ -18,7 +19,7 @@ An offline-first desktop writing application built with Tauri + React + Rust for
 ```
 
 ### Tech Stack
-- **Frontend**: React 18 + TypeScript + Vite
+- **Frontend**: React 18 + TypeScript + Vite + Zustand (state management)
 - **Desktop Shell**: Tauri (local builds only, not on Replit)
 - **Backend Service**: Rust + Axum web framework
 - **Local LLM**: Ollama on 127.0.0.1:11434
@@ -50,8 +51,26 @@ The deterministic engine detects:
 - **Git-backed**: Human-readable Markdown/YAML files, auto-commits on edits
 - **Single GPU friendly**: Smart queues, one resident model, pause on typing
 
+### Story Bible Features
+- **Braindump**: 5000 character limit for freeform ideas
+- **Synopsis**: 5000 character summary of the story
+- **Outline**: 3000 character plot structure
+- **Worldbuilding**: 3000 character setting details
+- **Genre**: 50 character genre specification
+- **Style Guide**: 2500 character writing style preferences
+- **Characters**: Full character management with fields for:
+  - Name (required)
+  - Character Type (protagonist, antagonist, secondary, support, minor)
+  - Description
+  - Voice Tone
+  - Personality
+  - Background
+- All sections have character counters that turn red when over limit
+- Navigation between sections via clickable sidebar
+
 ## Development Notes
-- Router runs on port 8765
+- Router runs on port 8000 (changed from 8765 due to Replit restrictions)
 - React dev server runs on port 5000
 - Ollama expected on port 11434
 - All network traffic restricted to 127.0.0.1
+- Story Bible data stored in Zustand store (in-memory, persistence pending)
