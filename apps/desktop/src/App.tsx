@@ -26,7 +26,7 @@ function useApi() {
 
 export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('editor')
-  const [text, setText] = useState<string>(`He was very cold. It was late.`)
+  const [text, setText] = useState<string>(`He was very cold. Then he realized it was absolutely late. She walked slowly and quietly through the dark corridor—her heart beating. At the end of the day, it was really just a matter of time before everything was discovered. He had been thinking that maybe, perhaps, it might be possible. The character felt scared and noticed the shadows.`)
   const [issues, setIssues] = useState<any[]>([])
   const { heuristics } = useApi()
 
@@ -190,14 +190,34 @@ export default function App() {
       <aside style={{ borderLeft: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
         {activeSection === 'editor' ? (
           <>
-            <h3>Issues</h3>
-            {issues.length === 0 ? <p>No issues yet.</p> : (
-              <ul style={{ fontSize: 13 }}>
-                {issues.map((i, idx) => (
-                  <li key={idx}>
-                    <code>{i.kind}</code> [{i.start},{i.end}] — {i.message}
-                  </li>
-                ))}
+            <h3>Issues ({issues.length})</h3>
+            {issues.length === 0 ? <p>No issues found. Your prose looks clean!</p> : (
+              <ul style={{ fontSize: 13, listStyle: 'none', padding: 0 }}>
+                {issues.map((i, idx) => {
+                  const severityColors = {
+                    error: '#dc3545',
+                    warning: '#ff9800',
+                    info: '#2196f3'
+                  };
+                  const color = severityColors[i.severity as keyof typeof severityColors] || '#666';
+                  return (
+                    <li key={idx} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <span style={{ 
+                          fontSize: 10, 
+                          fontWeight: 'bold', 
+                          color: '#fff',
+                          background: color,
+                          padding: '2px 6px',
+                          borderRadius: 3,
+                          textTransform: 'uppercase'
+                        }}>{i.severity}</span>
+                        <code style={{ fontSize: 11, color: '#666' }}>{i.kind}</code>
+                      </div>
+                      <div style={{ fontSize: 12, marginTop: 4 }}>{i.message}</div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </>
