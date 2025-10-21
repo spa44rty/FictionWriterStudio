@@ -47,13 +47,41 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('editor')
   const [text, setText] = useState<string>(`He waz very coldd. Then he realizd it was absolutly late. She walkked slowely and quietley through the darkk corrider—her hart beetingg. At the end of the day, it was realy just a mater of time before evrything was discovred.`)
   const [issues, setIssues] = useState<any[]>([])
-  const { heuristics } = useApi()
+  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const { heuristics, minorEdit } = useApi()
 
   const store = useStoryStore()
 
   async function onAnalyze() {
     const r = await heuristics(text)
     setIssues(r.issues || [])
+  }
+
+  async function onGetSuggestions() {
+    setLoadingSuggestions(true)
+    try {
+      const r = await minorEdit(text, 'llama3.2:latest')
+      setSuggestions(r.edits || [])
+    } catch (err) {
+      console.error('Failed to get AI suggestions:', err)
+      alert('Could not get AI suggestions. Make sure Ollama is running with a model installed.')
+    } finally {
+      setLoadingSuggestions(false)
+    }
+  }
+
+  function applySuggestion(edit: any) {
+    const lines = text.split('\n')
+    if (edit.line > 0 && edit.line <= lines.length) {
+      lines[edit.line - 1] = edit.new
+      setText(lines.join('\n'))
+      setSuggestions(suggestions.filter(s => s !== edit))
+    }
+  }
+
+  function rejectSuggestion(edit: any) {
+    setSuggestions(suggestions.filter(s => s !== edit))
   }
 
   const navItems: { section: Section; label: string }[] = [
@@ -197,6 +225,20 @@ export default function App() {
               <button onClick={onAnalyze} style={{ padding: '8px 12px', cursor: 'pointer' }}>
                 Analyze
               </button>
+              <button 
+                onClick={onGetSuggestions} 
+                disabled={loadingSuggestions}
+                style={{ 
+                  padding: '8px 12px', 
+                  cursor: loadingSuggestions ? 'wait' : 'pointer',
+                  background: loadingSuggestions ? '#ccc' : '#2196f3',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4
+                }}
+              >
+                {loadingSuggestions ? 'Getting Suggestions...' : 'Get AI Suggestions'}
+              </button>
             </div>
           </>
         )}
@@ -238,6 +280,63 @@ export default function App() {
                   );
                 })}
               </ul>
+            )}
+
+            {suggestions.length > 0 && (
+              <>
+                <hr style={{ margin: '16px 0' }} />
+                <h3>AI Suggestions ({suggestions.length})</h3>
+                <ul style={{ fontSize: 13, listStyle: 'none', padding: 0 }}>
+                  {suggestions.map((edit, idx) => (
+                    <li key={idx} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
+                      <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>Line {edit.line}</div>
+                      <div style={{ fontSize: 12, padding: 8, background: '#ffe0e0', borderRadius: 4, marginBottom: 4 }}>
+                        <strong>Old:</strong> {edit.old}
+                      </div>
+                      <div style={{ fontSize: 12, padding: 8, background: '#e0ffe0', borderRadius: 4, marginBottom: 8 }}>
+                        <strong>New:</strong> {edit.new}
+                      </div>
+                      {edit.rationale && (
+                        <div style={{ fontSize: 11, color: '#666', fontStyle: 'italic', marginBottom: 8 }}>
+                          {edit.rationale}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button 
+                          onClick={() => applySuggestion(edit)}
+                          style={{ 
+                            flex: 1, 
+                            padding: '6px 12px', 
+                            background: '#4caf50', 
+                            color: '#fff', 
+                            border: 'none', 
+                            borderRadius: 4, 
+                            cursor: 'pointer',
+                            fontSize: 12
+                          }}
+                        >
+                          Apply
+                        </button>
+                        <button 
+                          onClick={() => rejectSuggestion(edit)}
+                          style={{ 
+                            flex: 1, 
+                            padding: '6px 12px', 
+                            background: '#f44336', 
+                            color: '#fff', 
+                            border: 'none', 
+                            borderRadius: 4, 
+                            cursor: 'pointer',
+                            fontSize: 12
+                          }}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </>
         ) : (
