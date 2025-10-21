@@ -296,7 +296,7 @@ export default function App() {
                   placeholder="e.g., llama3.2:3b, phi3"
                 />
                 <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-                  Used for: AI Writing Assistant chat
+                  Used for: Quick questions and explanations in chat
                 </div>
               </div>
 
@@ -312,7 +312,7 @@ export default function App() {
                   placeholder="e.g., llama3.2:latest, mistral"
                 />
                 <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-                  Used for: "Get AI Suggestions" button
+                  Used for: "Analyze & Suggest Fixes" button and fix/improve prompts in chat
                 </div>
               </div>
 
@@ -328,7 +328,7 @@ export default function App() {
                   placeholder="e.g., llama3:70b, qwen2.5:72b"
                 />
                 <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-                  Used for: "Major Rewrite" button
+                  Used for: "Rewrite" or "regenerate" prompts in chat
                 </div>
               </div>
             </div>
@@ -382,12 +382,11 @@ export default function App() {
               }}>
                 {chatMessages.length === 0 ? (
                   <div style={{ color: '#666', fontSize: 14, fontStyle: 'italic' }}>
-                    Ask me anything about your writing! Examples:
-                    <ul style={{ marginTop: 8 }}>
-                      <li>How can I fix the spelling errors?</li>
-                      <li>What are the main issues with this text?</li>
-                      <li>Suggest a better way to phrase the second sentence</li>
-                      <li>How can I make this more engaging?</li>
+                    Ask me anything about your writing! The AI automatically chooses the best model:
+                    <ul style={{ marginTop: 8, fontSize: 13 }}>
+                      <li><strong>Small model:</strong> "What are the main issues?" or "Explain this grammar rule"</li>
+                      <li><strong>Medium model:</strong> "Fix the spelling errors" or "Suggest better phrasing"</li>
+                      <li><strong>Large model:</strong> "Completely rewrite this paragraph" or "Major restructure needed"</li>
                     </ul>
                   </div>
                 ) : (
