@@ -40,7 +40,14 @@ function useApi() {
     })
     return res.json()
   }
-  return { heuristics, minorEdit }
+  async function chat(prompt: string, model: string, context?: string) {
+    const res = await fetch(`${getApiUrl()}/api/chat`, {
+      method: 'POST', headers: {'content-type': 'application/json'},
+      body: JSON.stringify({ prompt, model, context })
+    })
+    return res.json()
+  }
+  return { heuristics, minorEdit, chat }
 }
 
 interface ChatMessage {
@@ -61,36 +68,25 @@ export default function App() {
   const [rightWidth, setRightWidth] = useState(320)
   const [isDraggingLeft, setIsDraggingLeft] = useState(false)
   const [isDraggingRight, setIsDraggingRight] = useState(false)
-  const { heuristics, minorEdit } = useApi()
+  const { heuristics, minorEdit, chat } = useApi()
 
   const store = useStoryStore()
 
   async function onAnalyze() {
-    const r = await heuristics(text)
-    setIssues(r.issues || [])
-  }
-
-  async function onGetSuggestions() {
     setLoadingSuggestions(true)
     try {
-      const r = await minorEdit(text, store.models.medium)
-      setSuggestions(r.edits || [])
+      const r = await heuristics(text)
+      setIssues(r.issues || [])
+      
+      if (r.issues && r.issues.length > 0) {
+        const aiResult = await minorEdit(text, store.models.medium)
+        setSuggestions(aiResult.edits || [])
+      } else {
+        setSuggestions([])
+      }
     } catch (err) {
-      console.error('Failed to get AI suggestions:', err)
-      alert('Could not get AI suggestions. Make sure Ollama is running with a model installed.')
-    } finally {
-      setLoadingSuggestions(false)
-    }
-  }
-
-  async function onMajorRewrite() {
-    setLoadingSuggestions(true)
-    try {
-      const r = await minorEdit(text, store.models.large)
-      setSuggestions(r.edits || [])
-    } catch (err) {
-      console.error('Failed to get major rewrite:', err)
-      alert('Could not get major rewrite. Make sure Ollama is running with the large model installed.')
+      console.error('Analysis error:', err)
+      alert('Could not complete analysis. Make sure Ollama is running with a model installed.')
     } finally {
       setLoadingSuggestions(false)
     }
@@ -109,29 +105,46 @@ export default function App() {
     setSuggestions(suggestions.filter(s => s !== edit))
   }
 
+  function selectModelForPrompt(prompt: string): string {
+    const lower = prompt.toLowerCase()
+    
+    const largeModelKeywords = ['rewrite', 'regenerate', 'completely', 'major', 'comprehensive', 'rebuild', 'restructure', 'transform']
+    const mediumModelKeywords = ['fix', 'correct', 'improve', 'suggest', 'edit', 'change', 'revise', 'polish', 'refine', 'enhance']
+    
+    for (const keyword of largeModelKeywords) {
+      if (lower.includes(keyword)) {
+        return store.models.large
+      }
+    }
+    
+    for (const keyword of mediumModelKeywords) {
+      if (lower.includes(keyword)) {
+        return store.models.medium
+      }
+    }
+    
+    return store.models.small
+  }
+
   async function onSendChat() {
     if (!chatInput.trim()) return
     
     const userMessage: ChatMessage = { role: 'user', content: chatInput }
+    const userPrompt = chatInput
     setChatMessages(prev => [...prev, userMessage])
     setChatInput('')
     setLoadingChat(true)
 
     try {
-      const prompt = `You are a writing assistant helping with fiction editing. The user is working on this text:
-
----
-${text}
----
-
-User question: ${chatInput}
-
-Provide helpful, specific advice about their writing. If they ask about fixing issues, suggest specific improvements. Keep responses concise and actionable.`
-
-      const response = await minorEdit(prompt, store.models.small)
+      const selectedModel = selectModelForPrompt(userPrompt)
+      
+      const modelInfo = selectedModel === store.models.large ? ' (using large model)' : 
+                       selectedModel === store.models.medium ? ' (using medium model)' : ''
+      
+      const response = await chat(userPrompt, selectedModel, text)
       const assistantMessage: ChatMessage = { 
         role: 'assistant', 
-        content: response.edits?.[0]?.new || 'I can help you improve your writing. Try asking about specific issues or request suggestions for improvements.'
+        content: response.response + (modelInfo ? `\n\n_${modelInfo}_` : '')
       }
       setChatMessages(prev => [...prev, assistantMessage])
     } catch (err) {
@@ -477,42 +490,24 @@ Provide helpful, specific advice about their writing. If they ask about fixing i
             <hr style={{ margin: '16px 0' }} />
             <h4 style={{ marginBottom: 8 }}>Editor Controls</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <button onClick={onAnalyze} style={{ padding: '8px 12px', cursor: 'pointer' }}>
-                Analyze
-              </button>
               <button 
-                onClick={onGetSuggestions} 
+                onClick={onAnalyze} 
                 disabled={loadingSuggestions}
                 style={{ 
                   padding: '8px 12px', 
                   cursor: loadingSuggestions ? 'wait' : 'pointer',
-                  background: loadingSuggestions ? '#ccc' : '#2196f3',
+                  background: loadingSuggestions ? '#ccc' : '#4caf50',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: 4
+                  borderRadius: 4,
+                  fontWeight: 'bold'
                 }}
               >
-                {loadingSuggestions ? 'Working...' : 'Get AI Suggestions'}
-              </button>
-              <button 
-                onClick={onMajorRewrite} 
-                disabled={loadingSuggestions}
-                style={{ 
-                  padding: '8px 12px', 
-                  cursor: loadingSuggestions ? 'wait' : 'pointer',
-                  background: loadingSuggestions ? '#ccc' : '#ff9800',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 4
-                }}
-              >
-                {loadingSuggestions ? 'Working...' : 'Major Rewrite'}
+                {loadingSuggestions ? 'Analyzing...' : 'Analyze & Suggest Fixes'}
               </button>
             </div>
             <div style={{ marginTop: 12, fontSize: 11, color: '#666', lineHeight: 1.4 }}>
-              <div><strong>Analyze:</strong> Fast local checks</div>
-              <div><strong>AI Suggestions:</strong> Medium model</div>
-              <div><strong>Major Rewrite:</strong> Large model</div>
+              <div>Flags issues and suggests AI-powered corrections</div>
             </div>
           </>
         )}

@@ -24,6 +24,7 @@ async fn main() {
     let app = Router::new()
         .route("/api/heuristics", post(heuristics::analyze))
         .route("/api/minor_edit", post(minor_edit))
+        .route("/api/chat", post(chat))
         .layer(cors);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
@@ -80,4 +81,31 @@ async fn minor_edit(Json(req): Json<MinorEditReq>) -> Json<MinorEditResp> {
     }
 
     Json(MinorEditResp { edits })
+}
+
+#[derive(Debug, Deserialize)]
+struct ChatReq {
+    model: String,
+    prompt: String,
+    context: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ChatResp {
+    response: String,
+}
+
+async fn chat(Json(req): Json<ChatReq>) -> Json<ChatResp> {
+    let full_prompt = if let Some(ctx) = req.context {
+        format!("SYSTEM: You are a helpful writing assistant for fiction authors. Provide specific, actionable advice.\n\nCONTEXT (user's current text):\n---\n{}\n---\n\nUSER: {}\n\nASSISTANT:", ctx, req.prompt)
+    } else {
+        format!("SYSTEM: You are a helpful writing assistant for fiction authors. Provide specific, actionable advice.\n\nUSER: {}\n\nASSISTANT:", req.prompt)
+    };
+
+    let response = match ollama_client::generate(&req.model, &full_prompt).await {
+        Ok(s) => s,
+        Err(e) => format!("Sorry, I encountered an error: {}", e),
+    };
+
+    Json(ChatResp { response })
 }
