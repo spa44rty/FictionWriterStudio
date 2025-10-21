@@ -2,6 +2,7 @@ use axum::{routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use tracing_subscriber::{EnvFilter, fmt};
+use tower_http::cors::{CorsLayer, Any};
 
 mod ollama_client;
 mod scheduler;
@@ -15,9 +16,15 @@ async fn main() {
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
     fmt().with_env_filter(filter).init();
 
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
     let app = Router::new()
         .route("/api/heuristics", post(heuristics::analyze))
-        .route("/api/minor_edit", post(minor_edit));
+        .route("/api/minor_edit", post(minor_edit))
+        .layer(cors);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     tracing::info!("router listening on {}", addr);

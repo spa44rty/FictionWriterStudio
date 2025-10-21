@@ -10,18 +10,27 @@ function useApi() {
   const getApiUrl = () => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-      return hostname.includes('replit') 
-        ? window.location.origin.replace(':5000', ':8000')
-        : 'http://127.0.0.1:8000';
+      if (hostname.includes('replit')) {
+        const origin = window.location.origin;
+        const baseUrl = origin.replace(/:\d+/, '');
+        return `${baseUrl}:8000`;
+      }
+      return 'http://127.0.0.1:8000';
     }
     return 'http://127.0.0.1:8000';
   };
 
   async function heuristics(text: string) {
-    const res = await fetch(`${getApiUrl()}/api/heuristics`, {
+    const apiUrl = getApiUrl();
+    console.log('Calling API:', `${apiUrl}/api/heuristics`);
+    const res = await fetch(`${apiUrl}/api/heuristics`, {
       method: 'POST', headers: {'content-type': 'application/json'},
       body: JSON.stringify({ text, rules: { ban_em_dashes: true, narrative_contractions: false, max_sentence_words: 28 } })
     })
+    if (!res.ok) {
+      console.error('API error:', res.status, res.statusText);
+      throw new Error(`API returned ${res.status}`);
+    }
     return res.json()
   }
   async function minorEdit(text: string, model: string) {
