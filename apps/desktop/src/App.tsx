@@ -302,6 +302,11 @@ Generate a comprehensive story outline:`
             onChange={(v) => store.updateField('synopsis', v)}
             maxLength={LIMITS.synopsis}
             placeholder="High-level summary of your story..."
+            actionButton={{
+              label: generatingOutline ? 'Generating...' : 'Generate Outline',
+              onClick: onGenerateOutline,
+              disabled: generatingOutline || !store.synopsis.trim()
+            }}
           />
         )
       case 'outline':
