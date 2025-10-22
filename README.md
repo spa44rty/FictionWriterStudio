@@ -109,12 +109,26 @@ cargo run
 
 ---
 
-## 🎯 Using the Desktop App
+## 🎯 Using the App
+
+### **Browser Version** (Easiest!)
 
 1. **Install Ollama**: https://ollama.ai/
-2. **Pull models** (see AI Models section above)
-3. **Start router service**: `cd core/router && cargo run`
-4. **Launch desktop app** - Click the installed icon!
+2. **Configure CORS** (one-time): See `OLLAMA_CORS_SETUP.md`
+3. **Pull models**:
+   ```bash
+   ollama pull llama3.2:3b
+   ollama pull llama3.2:latest
+   ollama pull llama3:70b
+   ```
+4. **Start router service**: `cd core/router && cargo run`
+5. **Open browser**: Go to `http://localhost:5000`
+
+✅ **Story Bible automatically saves in your browser!**
+
+### **Desktop App** (Optional)
+
+Follow the same steps, but instead of opening a browser, click the installed desktop icon!
 
 **System Tray:**
 - **Close button (X)** → Hides to tray (doesn't quit)
