@@ -455,40 +455,12 @@ Generate a comprehensive story outline:`
           </div>
         )
       case 'editor':
-        const activeChapter = store.chapters.find(c => c.id === store.activeChapterId)
-        const editorTitle = activeChapter 
-          ? `Chapter ${activeChapter.number}: ${activeChapter.title}`
-          : 'Chapter Editor'
-        
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Chapter Editor */}
             <div style={{ flex: 1, padding: 12, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <h2 style={{ marginTop: 0, marginBottom: 0 }}>{editorTitle}</h2>
-                {activeChapter && (
-                  <button
-                    onClick={() => {
-                      store.updateChapterContent(activeChapter.id, text)
-                      alert('Chapter saved!')
-                    }}
-                    style={{
-                      padding: '8px 16px',
-                      background: '#4caf50',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 4,
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: 14
-                    }}
-                  >
-                    Save Chapter
-                  </button>
-                )}
-              </div>
               {!activeChapter && (
-                <p style={{ color: '#666', fontSize: 14, fontStyle: 'italic' }}>
+                <p style={{ color: '#666', fontSize: 14, fontStyle: 'italic', marginBottom: 16 }}>
                   Select a chapter from the Chapters section to start editing
                 </p>
               )}
@@ -554,9 +526,24 @@ Generate a comprehensive story outline:`
     }
   }
 
+  const activeChapter = store.chapters.find(c => c.id === store.activeChapterId)
+
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui, sans-serif' }}>
       <aside style={{ width: leftWidth, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto', flexShrink: 0 }}>
+        {activeChapter && activeSection === 'editor' && (
+          <div style={{ marginBottom: 16, padding: 12, background: '#e3f2fd', borderRadius: 4, border: '2px solid #2196f3' }}>
+            <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', marginBottom: 4 }}>Active Chapter</div>
+            <div style={{ fontWeight: 'bold', fontSize: 14, marginBottom: 4 }}>
+              Chapter {activeChapter.number}: {activeChapter.title}
+            </div>
+            {activeChapter.wordCount > 0 && (
+              <div style={{ fontSize: 12, color: '#666' }}>
+                {activeChapter.wordCount.toLocaleString()} words
+              </div>
+            )}
+          </div>
+        )}
         <h3 style={{ marginTop: 0 }}>Story Bible</h3>
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {navItems.map(item => (
@@ -586,6 +573,30 @@ Generate a comprehensive story outline:`
             <hr style={{ margin: '16px 0' }} />
             <h4 style={{ marginBottom: 8 }}>Editor Controls</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {activeChapter && (
+                <>
+                  <button 
+                    onClick={() => {
+                      store.updateChapterContent(activeChapter.id, text)
+                      alert('Chapter saved!')
+                    }}
+                    style={{ 
+                      padding: '8px 12px', 
+                      cursor: 'pointer',
+                      background: '#2196f3',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 4,
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Save Chapter
+                  </button>
+                  <div style={{ fontSize: 11, color: '#666', marginTop: -4 }}>
+                    Save current chapter content and update word count
+                  </div>
+                </>
+              )}
               <button 
                 onClick={onAnalyze} 
                 disabled={loadingSuggestions}
