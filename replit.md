@@ -4,6 +4,7 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Added Chapters section above Story Bible for chapter management
 - 2025-10-22: Transformed analyzer to "Copy Editor Critique" - professional publishing-house editorial review
 - 2025-10-22: Added "Generate Outline" button to Synopsis tab for AI-powered outline creation
 - 2025-10-22: Enhanced AI prompting to include specific issues found for targeted line-level fixes
@@ -89,6 +90,21 @@ The deterministic engine performs 15+ quality checks:
 - **Deterministic + LLM hybrid**: Fast rule checks before slower LLM analysis
 - **Git-backed**: Human-readable Markdown/YAML files, auto-commits on edits
 - **Single GPU friendly**: Smart queues, one resident model, pause on typing
+
+### Chapters (above Story Bible)
+- **Chapter Management**: Organize and track your book's chapters
+  - **Chapter Number**: Numeric ordering (auto-sorts by number)
+  - **Title**: Chapter title/name
+  - **Summary**: Brief synopsis of what happens in the chapter
+  - **Word Count**: Track chapter length
+  - **Status**: Visual progress tracking
+    - Planned (gray) - Chapter outlined but not written
+    - Draft (orange) - First draft in progress or complete
+    - Revised (blue) - Revisions completed
+    - Final (green) - Ready for publication
+  - **Color-coded status bar**: Left border shows chapter status at a glance
+  - **Add/Edit/Delete**: Full CRUD operations for chapter management
+  - Chapters sort automatically by chapter number
 
 ### Story Bible Features
 - **Braindump**: 5000 character limit for freeform ideas
