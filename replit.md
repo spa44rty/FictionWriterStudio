@@ -176,16 +176,22 @@ The deterministic engine performs 15+ quality checks:
 
 ## Desktop Application (Tauri)
 - **Tauri configuration** located in `apps/desktop/src-tauri/`
-- **Custom app icon** with gradient purple-to-blue design
+- **Custom app icon** with gradient purple-to-blue design (open book + pen)
 - **System tray integration** - App minimizes to tray instead of closing
 - **Production build** requires local machine (not Replit)
-- **Build instructions** in `DESKTOP_BUILD.md`
+- **Build instructions** in `DESKTOP_BUILD.md` and `QUICK_START_DESKTOP.md`
 - **Supported platforms**: Windows (.msi), macOS (.dmg), Linux (.deb, .AppImage)
 - **Window behavior**: Close button hides to tray, use tray menu to quit
 - **System tray features**:
   - Left-click to show/focus window
   - Right-click menu: Show, Hide, Quit
   - Icon always visible in system tray
+- **GitHub Actions workflow** - Automatic builds for all platforms
+  - Located in `.github/workflows/build-desktop.yml`
+  - Manual trigger via GitHub Actions UI
+  - Auto-trigger on version tags (v*)
+  - Produces downloadable installers for Windows/Mac/Linux
+  - See `GITHUB_ACTIONS_GUIDE.md` for usage instructions
 
 ## AI Model System
 The app uses a **three-tier model strategy** with **automatic intelligent selection**:
