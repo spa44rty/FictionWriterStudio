@@ -25,9 +25,11 @@ struct GenerateResp {
 }
 
 pub async fn generate(model: &str, prompt: &str) -> Result<String, OllamaErr> {
-    let url = "http://127.0.0.1:11434/api/generate";
+    let ollama_url = std::env::var("OLLAMA_URL")
+        .unwrap_or_else(|_| "http://127.0.0.1:11434".to_string());
+    let url = format!("{}/api/generate", ollama_url);
     let client = Client::new();
     let body = GenerateReq { model, prompt, stream: false, options: serde_json::json!({"temperature": 0.3, "num_ctx": 4096}) };
-    let resp: GenerateResp = client.post(url).json(&body).send().await?.json().await?;
+    let resp: GenerateResp = client.post(&url).json(&body).send().await?.json().await?;
     Ok(resp.response.unwrap_or_default())
 }
