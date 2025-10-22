@@ -96,10 +96,12 @@ The deterministic engine performs 15+ quality checks:
 - Navigation between sections via clickable sidebar
 
 ### Scene Editor Layout
-- **Optimized three-section layout:**
+- **Three-section vertical layout:**
   - **Left Sidebar**: Story Bible navigation with resizable drag handle (200-500px)
-  - **Main Area**: Scene Editor (left) and Issues & Suggestions panel (right, 350px fixed width)
-  - **Bottom Bar**: AI Writing Assistant chat prompt line spanning full width
+  - **Center/Right Area (stacked vertically)**:
+    - **Top 50%**: Scene Editor for writing
+    - **Middle 50%**: Issues & Suggestions panel
+    - **Bottom**: AI Writing Assistant chat prompt line
 
 ### Scene Editor Features
 - **Prose Analysis**: "Analyze & Suggest Fixes" button runs 16+ deterministic checks AND provides AI-powered corrections

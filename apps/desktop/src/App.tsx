@@ -361,129 +361,126 @@ export default function App() {
       case 'editor':
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Main content area with editor and issues side-by-side */}
-            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-              {/* Left: Scene Editor */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 12, borderRight: '1px solid #ddd' }}>
-                <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
-                <textarea
-                  value={text}
-                  onChange={e => setText(e.target.value)}
-                  style={{
-                    flex: 1,
-                    width: '100%',
-                    fontFamily: 'serif',
-                    fontSize: 18,
-                    lineHeight: 1.6,
-                    padding: 12,
-                    border: '1px solid #ddd',
-                    borderRadius: 4,
-                    resize: 'none'
-                  }}
-                />
-              </div>
-
-              {/* Right: Issues & Suggestions */}
-              <div style={{ width: 350, padding: 12, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{ marginTop: 0, marginBottom: 12 }}>Issues & Suggestions</h3>
-                
-                {/* Issues */}
-                <div style={{ marginBottom: 16 }}>
-                  <h4 style={{ fontSize: 14, marginBottom: 8, color: '#666' }}>Issues ({issues.length})</h4>
-                  {issues.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#999' }}>No issues found. Your prose looks clean!</p>
-                  ) : (
-                    <ul style={{ fontSize: 13, listStyle: 'none', padding: 0, margin: 0 }}>
-                      {issues.map((i, idx) => {
-                        const severityColors = {
-                          error: '#dc3545',
-                          warning: '#ff9800',
-                          info: '#2196f3'
-                        };
-                        const color = severityColors[i.severity as keyof typeof severityColors] || '#666';
-                        return (
-                          <li key={idx} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                              <span style={{ 
-                                fontSize: 10, 
-                                fontWeight: 'bold', 
-                                color: '#fff',
-                                background: color,
-                                padding: '2px 6px',
-                                borderRadius: 3,
-                                textTransform: 'uppercase'
-                              }}>{i.severity}</span>
-                              <code style={{ fontSize: 11, color: '#666' }}>{i.kind}</code>
-                            </div>
-                            <div style={{ fontSize: 12, marginTop: 4 }}>{i.message}</div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
-
-                {/* AI Suggestions */}
-                {suggestions.length > 0 && (
-                  <div>
-                    <h4 style={{ fontSize: 14, marginBottom: 8, color: '#666' }}>AI Suggestions ({suggestions.length})</h4>
-                    <ul style={{ fontSize: 13, listStyle: 'none', padding: 0, margin: 0 }}>
-                      {suggestions.map((edit, idx) => (
-                        <li key={idx} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
-                          <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>Line {edit.line}</div>
-                          <div style={{ fontSize: 12, padding: 8, background: '#ffe0e0', borderRadius: 4, marginBottom: 4 }}>
-                            <strong>Old:</strong> {edit.old}
-                          </div>
-                          <div style={{ fontSize: 12, padding: 8, background: '#e0ffe0', borderRadius: 4, marginBottom: 8 }}>
-                            <strong>New:</strong> {edit.new}
-                          </div>
-                          {edit.rationale && (
-                            <div style={{ fontSize: 11, color: '#666', fontStyle: 'italic', marginBottom: 8 }}>
-                              {edit.rationale}
-                            </div>
-                          )}
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button 
-                              onClick={() => applySuggestion(edit)}
-                              style={{ 
-                                flex: 1, 
-                                padding: '6px 12px', 
-                                background: '#4caf50', 
-                                color: '#fff', 
-                                border: 'none', 
-                                borderRadius: 4, 
-                                cursor: 'pointer',
-                                fontSize: 12
-                              }}
-                            >
-                              Apply
-                            </button>
-                            <button 
-                              onClick={() => rejectSuggestion(edit)}
-                              style={{ 
-                                flex: 1, 
-                                padding: '6px 12px', 
-                                background: '#f44336', 
-                                color: '#fff', 
-                                border: 'none', 
-                                borderRadius: 4, 
-                                cursor: 'pointer',
-                                fontSize: 12
-                              }}
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+            {/* Top Half: Scene Editor */}
+            <div style={{ flex: '1 1 50%', padding: 12, borderBottom: '1px solid #ddd', display: 'flex', flexDirection: 'column' }}>
+              <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
+              <textarea
+                value={text}
+                onChange={e => setText(e.target.value)}
+                style={{
+                  flex: 1,
+                  width: '100%',
+                  fontFamily: 'serif',
+                  fontSize: 18,
+                  lineHeight: 1.6,
+                  padding: 12,
+                  border: '1px solid #ddd',
+                  borderRadius: 4,
+                  resize: 'none'
+                }}
+              />
             </div>
 
-            {/* Bottom: Chat Input */}
-            <div style={{ borderTop: '2px solid #ddd', padding: 12, background: '#fafafa' }}>
+            {/* Lower Half: Issues & Suggestions */}
+            <div style={{ flex: '1 1 50%', padding: 12, borderBottom: '2px solid #ddd', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ marginTop: 0, marginBottom: 12 }}>Issues & Suggestions</h3>
+              
+              {/* Issues */}
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ fontSize: 14, marginBottom: 8, color: '#666' }}>Issues ({issues.length})</h4>
+                {issues.length === 0 ? (
+                  <p style={{ fontSize: 13, color: '#999' }}>No issues found. Your prose looks clean!</p>
+                ) : (
+                  <ul style={{ fontSize: 13, listStyle: 'none', padding: 0, margin: 0 }}>
+                    {issues.map((i, idx) => {
+                      const severityColors = {
+                        error: '#dc3545',
+                        warning: '#ff9800',
+                        info: '#2196f3'
+                      };
+                      const color = severityColors[i.severity as keyof typeof severityColors] || '#666';
+                      return (
+                        <li key={idx} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                            <span style={{ 
+                              fontSize: 10, 
+                              fontWeight: 'bold', 
+                              color: '#fff',
+                              background: color,
+                              padding: '2px 6px',
+                              borderRadius: 3,
+                              textTransform: 'uppercase'
+                            }}>{i.severity}</span>
+                            <code style={{ fontSize: 11, color: '#666' }}>{i.kind}</code>
+                          </div>
+                          <div style={{ fontSize: 12, marginTop: 4 }}>{i.message}</div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              {/* AI Suggestions */}
+              {suggestions.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: 14, marginBottom: 8, color: '#666' }}>AI Suggestions ({suggestions.length})</h4>
+                  <ul style={{ fontSize: 13, listStyle: 'none', padding: 0, margin: 0 }}>
+                    {suggestions.map((edit, idx) => (
+                      <li key={idx} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
+                        <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>Line {edit.line}</div>
+                        <div style={{ fontSize: 12, padding: 8, background: '#ffe0e0', borderRadius: 4, marginBottom: 4 }}>
+                          <strong>Old:</strong> {edit.old}
+                        </div>
+                        <div style={{ fontSize: 12, padding: 8, background: '#e0ffe0', borderRadius: 4, marginBottom: 8 }}>
+                          <strong>New:</strong> {edit.new}
+                        </div>
+                        {edit.rationale && (
+                          <div style={{ fontSize: 11, color: '#666', fontStyle: 'italic', marginBottom: 8 }}>
+                            {edit.rationale}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button 
+                            onClick={() => applySuggestion(edit)}
+                            style={{ 
+                              flex: 1, 
+                              padding: '6px 12px', 
+                              background: '#4caf50', 
+                              color: '#fff', 
+                              border: 'none', 
+                              borderRadius: 4, 
+                              cursor: 'pointer',
+                              fontSize: 12
+                            }}
+                          >
+                            Apply
+                          </button>
+                          <button 
+                            onClick={() => rejectSuggestion(edit)}
+                            style={{ 
+                              flex: 1, 
+                              padding: '6px 12px', 
+                              background: '#f44336', 
+                              color: '#fff', 
+                              border: 'none', 
+                              borderRadius: 4, 
+                              cursor: 'pointer',
+                              fontSize: 12
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom: Chat Prompt Line */}
+            <div style={{ padding: 12, background: '#fafafa' }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <span style={{ fontSize: 14, fontWeight: 'bold', color: '#666', minWidth: 120 }}>AI Assistant:</span>
                 <input
@@ -519,10 +516,10 @@ export default function App() {
                 </button>
               </div>
               {chatMessages.length > 0 && (
-                <div style={{ marginTop: 8, padding: 8, background: '#fff', borderRadius: 4, maxHeight: 100, overflow: 'auto' }}>
+                <div style={{ marginTop: 8, padding: 8, background: '#fff', borderRadius: 4, maxHeight: 80, overflow: 'auto' }}>
                   <div style={{ fontSize: 12, color: '#666' }}>
-                    <strong>Last response:</strong> {chatMessages[chatMessages.length - 1].content.substring(0, 200)}
-                    {chatMessages[chatMessages.length - 1].content.length > 200 ? '...' : ''}
+                    <strong>Last response:</strong> {chatMessages[chatMessages.length - 1].content.substring(0, 150)}
+                    {chatMessages[chatMessages.length - 1].content.length > 150 ? '...' : ''}
                   </div>
                 </div>
               )}
