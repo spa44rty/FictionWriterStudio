@@ -211,33 +211,23 @@ Generate a comprehensive story outline:`
     }
   }
 
-  const [generatingSummary, setGeneratingSummary] = useState(false)
-
-  async function onGenerateSummary() {
-    const currentChapter = store.chapters.find(c => c.id === store.activeChapterId)
-    if (!currentChapter || !text.trim()) {
-      alert('Please write some chapter content first.')
-      return
-    }
+  async function autoGenerateSummary(chapterId: string, content: string) {
+    const chapter = store.chapters.find(c => c.id === chapterId)
+    if (!chapter || !content.trim()) return
     
-    setGeneratingSummary(true)
     try {
       const prompt = `Summarize this chapter in 2-3 concise sentences. Focus on key events, character development, and plot progression. Keep it brief but informative.
 
-Chapter ${currentChapter.number}: ${currentChapter.title}
+Chapter ${chapter.number}: ${chapter.title}
 
-${text}
+${content}
 
 Summary:`
 
       const response = await chat(prompt, store.models.small)
-      store.updateChapter(currentChapter.id, { summary: response.response.trim() })
-      alert('Chapter summary generated!')
+      store.updateChapter(chapterId, { summary: response.response.trim() })
     } catch (err) {
-      console.error('Summary generation error:', err)
-      alert('Could not generate summary. Make sure Ollama is running with a model installed.')
-    } finally {
-      setGeneratingSummary(false)
+      console.error('Auto-summary generation error:', err)
     }
   }
 
@@ -557,7 +547,8 @@ Summary:`
                   <button 
                     onClick={() => {
                       store.updateChapterContent(activeChapter.id, text)
-                      alert('Chapter saved!')
+                      autoGenerateSummary(activeChapter.id, text)
+                      alert('Chapter saved! AI summary will be generated in the background.')
                     }}
                     style={{ 
                       padding: '8px 12px', 
@@ -572,26 +563,7 @@ Summary:`
                     Save Chapter
                   </button>
                   <div style={{ fontSize: 11, color: '#666', marginTop: -4 }}>
-                    Save current chapter content and update word count
-                  </div>
-                  
-                  <button 
-                    onClick={onGenerateSummary}
-                    disabled={generatingSummary || !text.trim()}
-                    style={{ 
-                      padding: '8px 12px', 
-                      cursor: generatingSummary || !text.trim() ? 'not-allowed' : 'pointer',
-                      background: generatingSummary || !text.trim() ? '#ccc' : '#9c27b0',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 4,
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {generatingSummary ? 'Generating...' : 'Generate Summary'}
-                  </button>
-                  <div style={{ fontSize: 11, color: '#666', marginTop: -4 }}>
-                    AI creates a brief summary for context in future chapters
+                    Saves content and auto-generates summary for AI context
                   </div>
                 </>
               )}

@@ -4,9 +4,9 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Automatic background summary generation when chapters are saved (invisible to user, purely for AI context)
 - 2025-10-22: Added Story Bible context to all AI chat queries (genre, synopsis, outline, worldbuilding, style guide, characters)
 - 2025-10-22: Added previous chapter summaries to chat context to avoid token limits
-- 2025-10-22: Added "Generate Summary" button to auto-create brief chapter summaries using AI
 - 2025-10-22: Chat now includes full Story Bible + previous chapter summaries + current chapter content
 - 2025-10-22: Removed Copy Editor Critique button, replaced with Chapter Response text window for chat-based chapter interaction
 - 2025-10-22: Chat responses now appear in dedicated text window in Editor Controls section
@@ -136,19 +136,15 @@ The deterministic engine performs 15+ quality checks:
   - Automatically navigates to editor when chapter is clicked
   - Chapter title shown in editor header (e.g., "Chapter 1: The Beginning")
   
-- **Save Chapter Button**: Saves current chapter content and auto-calculates word count
+- **Save Chapter Button**: Saves current chapter content and auto-generates summary
   - Only appears when a chapter is selected
   - Updates chapter with content and recalculates word count
+  - **Automatically generates invisible summary** in background using small model
+  - Summaries are hidden from user - purely for AI context
+  - Previous chapter summaries included in AI queries (avoids sending full text)
+  - Essential for maintaining plot consistency without hitting token limits
   - Shows success confirmation when saved
   - Content persists when switching between chapters
-
-- **Generate Summary Button**: AI-powered chapter summarization
-  - Creates 2-3 sentence summary of current chapter
-  - Uses small model for fast generation
-  - Summaries stored with each chapter
-  - Previous chapter summaries included in AI context (avoids sending full text)
-  - Can also manually edit summaries in Chapter form
-  - Essential for maintaining context without hitting token limits
 
 - **Chapter Response Window**: Dedicated text display for AI feedback about your chapter
   - Located in Editor Controls section (left sidebar)

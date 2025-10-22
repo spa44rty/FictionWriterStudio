@@ -10,7 +10,6 @@ interface ChapterFormProps {
 export function ChapterForm({ chapter, onSave, onCancel }: ChapterFormProps) {
   const [number, setNumber] = useState(chapter?.number || 1)
   const [title, setTitle] = useState(chapter?.title || '')
-  const [summary, setSummary] = useState(chapter?.summary || '')
   const [wordCount, setWordCount] = useState(chapter?.wordCount || 0)
   const [status, setStatus] = useState<Chapter['status']>(chapter?.status || 'planned')
 
@@ -21,7 +20,7 @@ export function ChapterForm({ chapter, onSave, onCancel }: ChapterFormProps) {
       id: chapter?.id || `ch-${Date.now()}`,
       number,
       title,
-      summary,
+      summary: chapter?.summary || '',
       wordCount,
       status,
       content: chapter?.content || ''
@@ -60,18 +59,6 @@ export function ChapterForm({ chapter, onSave, onCancel }: ChapterFormProps) {
           />
         </div>
 
-        <div>
-          <label style={{ display: 'block', marginBottom: 4, fontWeight: 'bold' }}>
-            Summary
-          </label>
-          <textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            placeholder="Brief summary of what happens in this chapter..."
-            rows={4}
-            style={{ width: '100%', padding: 8, border: '1px solid #ddd', borderRadius: 4, fontFamily: 'inherit', resize: 'vertical' }}
-          />
-        </div>
 
         <div>
           <label style={{ display: 'block', marginBottom: 4, fontWeight: 'bold' }}>
