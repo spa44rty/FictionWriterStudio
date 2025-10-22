@@ -77,6 +77,17 @@ export default function App() {
 
   const store = useStoryStore()
 
+  useEffect(() => {
+    if (store.activeChapterId) {
+      const chapter = store.chapters.find(c => c.id === store.activeChapterId)
+      if (chapter && chapter.content !== undefined) {
+        setText(chapter.content)
+        setIssues([])
+        setSuggestions([])
+      }
+    }
+  }, [store.activeChapterId])
+
   async function onAnalyze() {
     setLoadingSuggestions(true)
     setIssues([])
@@ -281,7 +292,7 @@ Generate a comprehensive story outline:`
     { section: 'genre', label: 'Genre' },
     { section: 'styleGuide', label: 'Style Guide' },
     { section: 'settings', label: 'AI Models' },
-    { section: 'editor', label: '--- Scene Editor ---' }
+    { section: 'editor', label: '--- Chapter Editor ---' }
   ]
 
   function renderContent() {
@@ -290,9 +301,11 @@ Generate a comprehensive story outline:`
         return (
           <ChapterList
             chapters={store.chapters}
+            activeChapterId={store.activeChapterId}
             onAdd={store.addChapter}
             onUpdate={store.updateChapter}
             onDelete={store.deleteChapter}
+            onSelect={store.setActiveChapter}
           />
         )
       case 'braindump':
@@ -441,11 +454,43 @@ Generate a comprehensive story outline:`
           </div>
         )
       case 'editor':
+        const activeChapter = store.chapters.find(c => c.id === store.activeChapterId)
+        const editorTitle = activeChapter 
+          ? `Chapter ${activeChapter.number}: ${activeChapter.title}`
+          : 'Chapter Editor'
+        
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Top Half: Scene Editor */}
+            {/* Top Half: Chapter Editor */}
             <div style={{ flex: '1 1 50%', padding: 12, borderBottom: '1px solid #ddd', display: 'flex', flexDirection: 'column' }}>
-              <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <h2 style={{ marginTop: 0, marginBottom: 0 }}>{editorTitle}</h2>
+                {activeChapter && (
+                  <button
+                    onClick={() => {
+                      store.updateChapterContent(activeChapter.id, text)
+                      alert('Chapter saved!')
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#4caf50',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: 14
+                    }}
+                  >
+                    Save Chapter
+                  </button>
+                )}
+              </div>
+              {!activeChapter && (
+                <p style={{ color: '#666', fontSize: 14, fontStyle: 'italic' }}>
+                  Select a chapter from the Chapters section to start editing
+                </p>
+              )}
               <InlineEditor
                 ref={editorRef}
                 value={text}
