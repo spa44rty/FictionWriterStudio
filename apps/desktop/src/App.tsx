@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useStoryStore } from './store'
 import { BibleSection } from './components/BibleSection'
 import { CharacterList } from './components/CharacterList'
+import { InlineEditor } from './components/InlineEditor'
 import { LIMITS } from './types'
 
 type Section = 'braindump' | 'synopsis' | 'outline' | 'characters' | 'worldbuilding' | 'genre' | 'styleGuide' | 'settings' | 'editor'
@@ -80,12 +81,37 @@ export default function App() {
     
     try {
       const r = await heuristics(text)
-      setIssues(r.issues || [])
+      // Map issues to include position in the format expected by InlineEditor
+      const mappedIssues = (r.issues || []).map((issue: any) => ({
+        ...issue,
+        position: { start: issue.start, end: issue.end },
+        text: text.substring(issue.start, issue.end)
+      }))
+      setIssues(mappedIssues)
       
       if (r.issues && r.issues.length > 0) {
         try {
           const aiResult = await minorEdit(text, store.models.medium)
-          setSuggestions(aiResult.edits || [])
+          // Map suggestions to include positions by finding the old text
+          const mappedSuggestions = (aiResult.edits || []).map((edit: any) => {
+            const lines = text.split('\n')
+            if (edit.line > 0 && edit.line <= lines.length) {
+              const lineIndex = edit.line - 1
+              const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0)
+              const oldTextIndex = lines[lineIndex].indexOf(edit.old)
+              if (oldTextIndex !== -1) {
+                return {
+                  ...edit,
+                  position: {
+                    start: lineStart + oldTextIndex,
+                    end: lineStart + oldTextIndex + edit.old.length
+                  }
+                }
+              }
+            }
+            return edit
+          })
+          setSuggestions(mappedSuggestions)
         } catch (aiErr) {
           console.error('AI suggestion error:', aiErr)
           alert('Found issues, but could not get AI suggestions. Make sure Ollama is running with the medium model installed.')
@@ -100,16 +126,28 @@ export default function App() {
   }
 
   function applySuggestion(edit: any) {
-    const lines = text.split('\n')
-    if (edit.line > 0 && edit.line <= lines.length) {
-      lines[edit.line - 1] = edit.new
-      setText(lines.join('\n'))
-      setSuggestions(suggestions.filter(s => s !== edit))
+    if (edit.position) {
+      // Apply using position
+      const before = text.substring(0, edit.position.start)
+      const after = text.substring(edit.position.end)
+      setText(before + edit.new + after)
+    } else {
+      // Fallback to line-based
+      const lines = text.split('\n')
+      if (edit.line > 0 && edit.line <= lines.length) {
+        lines[edit.line - 1] = edit.new
+        setText(lines.join('\n'))
+      }
     }
+    setSuggestions(suggestions.filter(s => s !== edit))
   }
 
   function rejectSuggestion(edit: any) {
     setSuggestions(suggestions.filter(s => s !== edit))
+  }
+
+  function ignoreIssue(issue: any) {
+    setIssues(issues.filter(i => i !== issue))
   }
 
   function selectModelForPrompt(prompt: string): string {
@@ -364,20 +402,14 @@ export default function App() {
             {/* Top Half: Scene Editor */}
             <div style={{ flex: '1 1 50%', padding: 12, borderBottom: '1px solid #ddd', display: 'flex', flexDirection: 'column' }}>
               <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
-              <textarea
+              <InlineEditor
                 value={text}
-                onChange={e => setText(e.target.value)}
-                style={{
-                  flex: 1,
-                  width: '100%',
-                  fontFamily: 'serif',
-                  fontSize: 18,
-                  lineHeight: 1.6,
-                  padding: 12,
-                  border: '1px solid #ddd',
-                  borderRadius: 4,
-                  resize: 'none'
-                }}
+                onChange={setText}
+                issues={issues}
+                suggestions={suggestions}
+                onIgnoreIssue={ignoreIssue}
+                onApplySuggestion={applySuggestion}
+                onIgnoreSuggestion={rejectSuggestion}
               />
             </div>
 
