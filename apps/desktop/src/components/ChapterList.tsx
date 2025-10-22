@@ -4,12 +4,14 @@ import { ChapterForm } from './ChapterForm'
 
 interface ChapterListProps {
   chapters: Chapter[]
+  activeChapterId: string | null
   onAdd: (chapter: Chapter) => void
   onUpdate: (id: string, chapter: Partial<Chapter>) => void
   onDelete: (id: string) => void
+  onSelect: (id: string) => void
 }
 
-export function ChapterList({ chapters, onAdd, onUpdate, onDelete }: ChapterListProps) {
+export function ChapterList({ chapters, activeChapterId, onAdd, onUpdate, onDelete, onSelect }: ChapterListProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showNewForm, setShowNewForm] = useState(false)
 
@@ -81,11 +83,15 @@ export function ChapterList({ chapters, onAdd, onUpdate, onDelete }: ChapterList
           {sortedChapters.map(chapter => (
             <div 
               key={chapter.id} 
+              onClick={() => onSelect(chapter.id)}
               style={{ 
-                border: '1px solid #ddd', 
+                border: chapter.id === activeChapterId ? '2px solid #2196f3' : '1px solid #ddd', 
                 borderRadius: 4, 
                 padding: 12,
-                borderLeft: `4px solid ${getStatusColor(chapter.status)}`
+                borderLeft: `4px solid ${getStatusColor(chapter.status)}`,
+                cursor: 'pointer',
+                background: chapter.id === activeChapterId ? '#e3f2fd' : '#fff',
+                transition: 'all 0.2s ease'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
@@ -110,7 +116,7 @@ export function ChapterList({ chapters, onAdd, onUpdate, onDelete }: ChapterList
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button 
-                    onClick={() => setEditingId(chapter.id)} 
+                    onClick={(e) => { e.stopPropagation(); setEditingId(chapter.id); }} 
                     style={{ 
                       padding: '4px 12px', 
                       fontSize: 12, 
@@ -124,7 +130,7 @@ export function ChapterList({ chapters, onAdd, onUpdate, onDelete }: ChapterList
                     Edit
                   </button>
                   <button 
-                    onClick={() => onDelete(chapter.id)} 
+                    onClick={(e) => { e.stopPropagation(); onDelete(chapter.id); }} 
                     style={{ 
                       padding: '4px 12px', 
                       fontSize: 12, 
