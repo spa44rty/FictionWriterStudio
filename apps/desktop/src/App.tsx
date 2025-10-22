@@ -70,6 +70,7 @@ export default function App() {
   const [loadingChat, setLoadingChat] = useState(false)
   const [leftWidth, setLeftWidth] = useState(280)
   const [isDraggingLeft, setIsDraggingLeft] = useState(false)
+  const [generatingOutline, setGeneratingOutline] = useState(false)
   const editorRef = useRef<InlineEditorRef>(null)
   const { heuristics, minorEdit, chat } = useApi()
 
@@ -212,6 +213,32 @@ export default function App() {
       setChatMessages(prev => [...prev, errorMessage])
     } finally {
       setLoadingChat(false)
+    }
+  }
+
+  async function onGenerateOutline() {
+    if (!store.synopsis.trim()) {
+      alert('Please write a synopsis first before generating an outline.')
+      return
+    }
+    
+    setGeneratingOutline(true)
+    try {
+      const prompt = `Based on this story synopsis, create a detailed outline with major plot points, acts, and key scenes. Format it clearly with bullet points or numbered sections.
+
+Synopsis:
+${store.synopsis}
+
+Generate a comprehensive story outline:`
+
+      const response = await chat(prompt, store.models.medium)
+      store.updateField('outline', response.response)
+      setActiveSection('outline')
+    } catch (err) {
+      console.error('Outline generation error:', err)
+      alert('Could not generate outline. Make sure Ollama is running with the medium model installed.')
+    } finally {
+      setGeneratingOutline(false)
     }
   }
 
