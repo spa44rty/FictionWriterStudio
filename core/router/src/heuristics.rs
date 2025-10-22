@@ -28,6 +28,7 @@ pub async fn analyze(Json(req): Json<HeurReq>) -> Json<HeurResp> {
     let mut issues = Vec::new();
     let text = &req.text;
 
+    issues.extend(check_concatenated_words(text));
     issues.extend(check_spelling(text));
     issues.extend(check_adverbs(text));
     issues.extend(check_fillers(text));
@@ -46,6 +47,39 @@ pub async fn analyze(Json(req): Json<HeurReq>) -> Json<HeurResp> {
     issues.extend(check_double_spaces(text));
 
     Json(HeurResp { issues })
+}
+
+fn check_concatenated_words(text: &str) -> Vec<Issue> {
+    let mut issues = Vec::new();
+    let word_re = Regex::new(r"\b[a-zA-Z]{6,}\b").unwrap();
+    
+    for m in word_re.find_iter(text) {
+        let word = m.as_str().to_lowercase();
+        
+        if spellcheck::is_word_correct(&word) {
+            continue;
+        }
+        
+        for split_pos in 2..word.len()-1 {
+            let left = &word[..split_pos];
+            let right = &word[split_pos..];
+            
+            if left.len() >= 2 && right.len() >= 2 &&
+               spellcheck::is_word_correct(left) && spellcheck::is_word_correct(right) {
+                let suggestion = format!("{} {}", left, right);
+                issues.push(Issue {
+                    kind: "concatenated_words".into(),
+                    start: m.start(),
+                    end: m.end(),
+                    message: format!("Missing space? '{}' could be '{}'", m.as_str(), suggestion),
+                    severity: "error".into(),
+                    suggestions: Some(vec![suggestion]),
+                });
+                break;
+            }
+        }
+    }
+    issues
 }
 
 fn check_adverbs(text: &str) -> Vec<Issue> {

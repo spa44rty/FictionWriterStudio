@@ -34,10 +34,10 @@ function useApi() {
     }
     return res.json()
   }
-  async function minorEdit(text: string, model: string) {
+  async function minorEdit(text: string, model: string, issues?: any[]) {
     const res = await fetch(`${getApiUrl()}/api/minor_edit`, {
       method: 'POST', headers: {'content-type': 'application/json'},
-      body: JSON.stringify({ text, model, style: { tense: 'past', pov: 'close-third', narrative_contractions: false, dialogue_contractions: true, ban_em_dashes: true }, citations: [] })
+      body: JSON.stringify({ text, model, style: { tense: 'past', pov: 'close-third', narrative_contractions: false, dialogue_contractions: true, ban_em_dashes: true }, citations: [], issues })
     })
     if (!res.ok) {
       throw new Error(`API returned ${res.status}: ${res.statusText}`)
@@ -92,7 +92,7 @@ export default function App() {
       
       if (r.issues && r.issues.length > 0) {
         try {
-          const aiResult = await minorEdit(text, store.models.medium)
+          const aiResult = await minorEdit(text, store.models.medium, r.issues)
           // Map suggestions to include positions by finding the old text
           const mappedSuggestions = (aiResult.edits || []).map((edit: any) => {
             const lines = text.split('\n')
