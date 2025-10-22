@@ -10,6 +10,15 @@ export interface Character {
   background: string
 }
 
+export interface Chapter {
+  id: string
+  number: number
+  title: string
+  summary: string
+  wordCount: number
+  status: 'planned' | 'draft' | 'revised' | 'final'
+}
+
 export interface StoryBible {
   braindump: string
   synopsis: string
@@ -18,6 +27,7 @@ export interface StoryBible {
   genre: string
   styleGuide: string
   characters: Character[]
+  chapters: Chapter[]
 }
 
 export const LIMITS = {

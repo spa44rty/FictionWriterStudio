@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { StoryBible, Character } from './types'
+import { StoryBible, Character, Chapter } from './types'
 
 interface ModelConfig {
   small: string
@@ -9,11 +9,14 @@ interface ModelConfig {
 
 interface StoryState extends StoryBible {
   models: ModelConfig
-  updateField: (field: keyof Omit<StoryBible, 'characters'>, value: string) => void
+  updateField: (field: keyof Omit<StoryBible, 'characters' | 'chapters'>, value: string) => void
   updateModel: (size: keyof ModelConfig, model: string) => void
   addCharacter: (character: Character) => void
   updateCharacter: (id: string, character: Partial<Character>) => void
   deleteCharacter: (id: string) => void
+  addChapter: (chapter: Chapter) => void
+  updateChapter: (id: string, chapter: Partial<Chapter>) => void
+  deleteChapter: (id: string) => void
 }
 
 export const useStoryStore = create<StoryState>((set) => ({
@@ -24,6 +27,7 @@ export const useStoryStore = create<StoryState>((set) => ({
   genre: '',
   styleGuide: '',
   characters: [],
+  chapters: [],
   models: {
     small: 'llama3.2:3b',
     medium: 'llama3.2:latest',
@@ -46,5 +50,17 @@ export const useStoryStore = create<StoryState>((set) => ({
   
   deleteCharacter: (id) => set((state) => ({
     characters: state.characters.filter(c => c.id !== id)
+  })),
+  
+  addChapter: (chapter) => set((state) => ({
+    chapters: [...state.chapters, chapter]
+  })),
+  
+  updateChapter: (id, updates) => set((state) => ({
+    chapters: state.chapters.map(c => c.id === id ? { ...c, ...updates } : c)
+  })),
+  
+  deleteChapter: (id) => set((state) => ({
+    chapters: state.chapters.filter(c => c.id !== id)
   }))
 }))
