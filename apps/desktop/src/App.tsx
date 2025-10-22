@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useStoryStore } from './store'
 import { BibleSection } from './components/BibleSection'
 import { CharacterList } from './components/CharacterList'
+import { ChapterList } from './components/ChapterList'
 import { InlineEditor, InlineEditorRef } from './components/InlineEditor'
 import { LIMITS } from './types'
 
-type Section = 'braindump' | 'synopsis' | 'outline' | 'characters' | 'worldbuilding' | 'genre' | 'styleGuide' | 'settings' | 'editor'
+type Section = 'chapters' | 'braindump' | 'synopsis' | 'outline' | 'characters' | 'worldbuilding' | 'genre' | 'styleGuide' | 'settings' | 'editor'
 
 function useApi() {
   const getApiUrl = () => {
@@ -271,6 +272,7 @@ Generate a comprehensive story outline:`
   }, [isDraggingLeft])
 
   const navItems: { section: Section; label: string }[] = [
+    { section: 'chapters', label: 'Chapters' },
     { section: 'braindump', label: 'Braindump' },
     { section: 'synopsis', label: 'Synopsis' },
     { section: 'outline', label: 'Outline' },
@@ -284,6 +286,15 @@ Generate a comprehensive story outline:`
 
   function renderContent() {
     switch (activeSection) {
+      case 'chapters':
+        return (
+          <ChapterList
+            chapters={store.chapters}
+            onAdd={store.addChapter}
+            onUpdate={store.updateChapter}
+            onDelete={store.deleteChapter}
+          />
+        )
       case 'braindump':
         return (
           <BibleSection
