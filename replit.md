@@ -174,6 +174,19 @@ The deterministic engine performs 15+ quality checks:
 - All network traffic restricted to 127.0.0.1
 - Story Bible data stored in Zustand store (in-memory, persistence pending)
 
+## Desktop Application (Tauri)
+- **Tauri configuration** located in `apps/desktop/src-tauri/`
+- **Custom app icon** with gradient purple-to-blue design
+- **System tray integration** - App minimizes to tray instead of closing
+- **Production build** requires local machine (not Replit)
+- **Build instructions** in `DESKTOP_BUILD.md`
+- **Supported platforms**: Windows (.msi), macOS (.dmg), Linux (.deb, .AppImage)
+- **Window behavior**: Close button hides to tray, use tray menu to quit
+- **System tray features**:
+  - Left-click to show/focus window
+  - Right-click menu: Show, Hide, Quit
+  - Icon always visible in system tray
+
 ## AI Model System
 The app uses a **three-tier model strategy** with **automatic intelligent selection**:
 

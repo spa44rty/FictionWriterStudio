@@ -1,0 +1,19 @@
+[package]
+name = "offline-fiction"
+version = "0.1.0"
+description = "Offline-first desktop writing application for longform fiction with local LLM assistance"
+authors = ["Offline Fiction Team"]
+license = "MIT"
+repository = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.8", features = ["system-tray", "shell-open"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
