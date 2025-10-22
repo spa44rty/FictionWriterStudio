@@ -4,6 +4,7 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Added "Generate Outline" button to Synopsis tab for AI-powered outline creation
 - 2025-10-22: Enhanced AI prompting to include specific issues found for targeted line-level fixes
 - 2025-10-22: Added concatenated words detection (e.g., "thedark" → suggests "the dark")
 - 2025-10-22: Improved analyzer to provide context-aware suggestions for weak verbs, adverbs, and fillers
@@ -91,6 +92,10 @@ The deterministic engine performs 15+ quality checks:
 ### Story Bible Features
 - **Braindump**: 5000 character limit for freeform ideas
 - **Synopsis**: 5000 character summary of the story
+  - **Generate Outline button**: AI-powered outline creation from synopsis
+  - Uses medium model to create structured plot outline with acts and key scenes
+  - Automatically fills the Outline section and navigates to it
+  - Disabled until synopsis has content
 - **Outline**: 3000 character plot structure
 - **Worldbuilding**: 3000 character setting details
 - **Genre**: 50 character genre specification
