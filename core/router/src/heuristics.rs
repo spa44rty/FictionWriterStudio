@@ -17,6 +17,8 @@ pub struct Issue {
     pub end: usize, 
     pub message: String,
     pub severity: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suggestions: Option<Vec<String>>,
 }
 
 #[derive(Serialize)]
@@ -59,6 +61,7 @@ fn check_adverbs(text: &str) -> Vec<Issue> {
                 end: m.end(),
                 message: format!("Adverb '{}' - consider stronger verb", m.as_str()),
                 severity: "warning".into(),
+            suggestions: None,
             });
         }
     }
@@ -82,6 +85,7 @@ fn check_fillers(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: format!("Filler word '{}' weakens prose", m.as_str()),
             severity: "warning".into(),
+            suggestions: None,
         });
     }
     issues
@@ -98,6 +102,7 @@ fn check_weak_starters(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: format!("Weak sentence starter '{}'", m.as_str()),
             severity: "info".into(),
+            suggestions: None,
         });
     }
     issues
@@ -114,6 +119,7 @@ fn check_em_dashes(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Em dash banned in narration per style guide".into(),
             severity: "error".into(),
+            suggestions: None,
         });
     }
     issues
@@ -130,6 +136,7 @@ fn check_weak_verbs(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: format!("Weak verb '{}' - consider stronger alternative", m.as_str()),
             severity: "info".into(),
+            suggestions: None,
         });
     }
     issues
@@ -161,6 +168,7 @@ fn check_cliches(text: &str) -> Vec<Issue> {
                 end: pos + cliche.len(),
                 message: format!("Cliché phrase '{}'", cliche),
                 severity: "warning".into(),
+            suggestions: None,
             });
             search_start = pos + cliche.len();
         }
@@ -182,6 +190,7 @@ fn check_prepositional_phrases(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Too many prepositional phrases in sequence".into(),
             severity: "warning".into(),
+            suggestions: None,
         });
     }
     issues
@@ -198,6 +207,7 @@ fn check_punctuation(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Transition word likely needs comma after it".into(),
             severity: "info".into(),
+            suggestions: None,
         });
     }
     
@@ -209,6 +219,7 @@ fn check_punctuation(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Multiple punctuation marks".into(),
             severity: "error".into(),
+            suggestions: None,
         });
     }
     
@@ -247,6 +258,7 @@ fn check_repetitive_words(text: &str) -> Vec<Issue> {
                     end: sentence_start + sentence.len(),
                     message: format!("Word '{}' repeated {} times in same sentence", word, positions.len()),
                     severity: "warning".into(),
+            suggestions: None,
                 });
             }
         }
@@ -276,6 +288,7 @@ fn check_sentence_pacing(text: &str) -> Vec<Issue> {
                 end: sentence_start + sentence.len(),
                 message: format!("Long sentence ({} words) - consider breaking up", word_count),
                 severity: "info".into(),
+            suggestions: None,
             });
         }
         
@@ -291,6 +304,7 @@ fn check_sentence_pacing(text: &str) -> Vec<Issue> {
                 end: sentence_start + sentence.len(),
                 message: "Very short sentence - ensure intentional for pacing".into(),
                 severity: "info".into(),
+            suggestions: None,
             });
         }
     }
@@ -315,6 +329,7 @@ fn check_sentence_pacing(text: &str) -> Vec<Issue> {
                 end: 0,
                 message: "Monotonous sentence rhythm - vary sentence lengths for better pacing".into(),
                 severity: "info".into(),
+            suggestions: None,
             });
         }
     }
@@ -334,6 +349,7 @@ fn check_passive_voice(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Possible passive voice - consider active construction".into(),
             severity: "warning".into(),
+            suggestions: None,
         });
     }
     issues
@@ -350,6 +366,7 @@ fn check_hedging_words(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: format!("Hedging word '{}' weakens assertiveness", m.as_str()),
             severity: "info".into(),
+            suggestions: None,
         });
     }
     issues
@@ -366,6 +383,7 @@ fn check_telling_words(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Possible 'telling' - consider showing through action/dialogue".into(),
             severity: "info".into(),
+            suggestions: None,
         });
     }
     issues
@@ -382,6 +400,7 @@ fn check_overused_conjunctions(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Too many conjunctions - consider breaking into separate sentences".into(),
             severity: "warning".into(),
+            suggestions: None,
         });
     }
     issues
@@ -398,6 +417,7 @@ fn check_double_spaces(text: &str) -> Vec<Issue> {
             end: m.end(),
             message: "Multiple spaces - clean up formatting".into(),
             severity: "info".into(),
+            suggestions: None,
         });
     }
     issues
@@ -407,13 +427,20 @@ fn check_spelling(text: &str) -> Vec<Issue> {
     let mut issues = Vec::new();
     let spelling_errors = spellcheck::check_spelling(text);
     
-    for (start, end, word) in spelling_errors {
+    for (start, end, word, suggestions) in spelling_errors {
+        let message = if !suggestions.is_empty() {
+            format!("Possible spelling error: '{}'. Did you mean: {}?", word, suggestions.join(", "))
+        } else {
+            format!("Possible spelling error: '{}'", word)
+        };
+        
         issues.push(Issue {
             kind: "spelling".into(),
             start,
             end,
-            message: format!("Possible spelling error: '{}'", word),
+            message,
             severity: "error".into(),
+            suggestions: if !suggestions.is_empty() { Some(suggestions) } else { None },
         });
     }
     issues
