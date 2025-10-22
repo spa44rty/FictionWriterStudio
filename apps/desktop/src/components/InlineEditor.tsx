@@ -36,6 +36,7 @@ export function InlineEditor({
   onIgnoreSuggestion
 }: InlineEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const overlayRef = useRef<HTMLDivElement>(null)
   const [activeTooltip, setActiveTooltip] = useState<{ type: 'issue' | 'suggestion', item: any, rect: DOMRect } | null>(null)
   const [highlights, setHighlights] = useState<Array<{ start: number, end: number, type: 'issue' | 'suggestion', severity?: string, item: any }>>([])
 
@@ -70,6 +71,25 @@ export function InlineEditor({
     
     setHighlights(newHighlights)
   }, [issues, suggestions])
+
+  // Sync scroll position between textarea and overlay
+  useEffect(() => {
+    const textarea = textareaRef.current
+    const overlay = overlayRef.current
+    
+    if (!textarea || !overlay) return
+
+    const syncScroll = () => {
+      overlay.scrollTop = textarea.scrollTop
+      overlay.scrollLeft = textarea.scrollLeft
+    }
+
+    // Sync immediately in case there's already a scroll offset
+    syncScroll()
+
+    textarea.addEventListener('scroll', syncScroll)
+    return () => textarea.removeEventListener('scroll', syncScroll)
+  }, [highlights.length])
 
   const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
     const textarea = e.currentTarget
@@ -122,20 +142,23 @@ export function InlineEditor({
 
     return (
       <div
+        ref={overlayRef}
         style={{
           position: 'absolute',
-          top: 12,
-          left: 12,
-          right: 12,
-          bottom: 12,
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
           fontFamily: 'serif',
           fontSize: 18,
           lineHeight: 1.6,
+          padding: 12,
           whiteSpace: 'pre-wrap',
           wordWrap: 'break-word',
-          color: 'transparent',
+          color: '#000',
           pointerEvents: 'none',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          zIndex: 1
         }}
       >
         {parts.map((part, idx) => {
@@ -154,8 +177,7 @@ export function InlineEditor({
                 key={idx}
                 style={{
                   backgroundColor: `${color}20`,
-                  borderBottom: `2px wavy ${color}`,
-                  color: 'transparent'
+                  borderBottom: `2px wavy ${color}`
                 }}
               >
                 {part.text}
@@ -170,7 +192,8 @@ export function InlineEditor({
 
   return (
     <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ position: 'relative', flex: 1 }}>
+      <div style={{ position: 'relative', flex: 1, backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: 4 }}>
+        {renderHighlightedText()}
         <textarea
           ref={textareaRef}
           value={value}
@@ -186,14 +209,15 @@ export function InlineEditor({
             fontSize: 18,
             lineHeight: 1.6,
             padding: 12,
-            border: '1px solid #ddd',
+            border: 'none',
             borderRadius: 4,
             resize: 'none',
             backgroundColor: 'transparent',
-            zIndex: 2
+            color: highlights.length > 0 ? 'rgba(0, 0, 0, 0.3)' : '#000',
+            zIndex: 2,
+            caretColor: '#000'
           }}
         />
-        {renderHighlightedText()}
       </div>
 
       {/* Tooltip */}

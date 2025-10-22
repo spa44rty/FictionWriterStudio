@@ -4,7 +4,10 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
-- 2025-10-21: Reorganized UI layout - Scene Editor on top, Issues/Suggestions and Chat side-by-side on bottom
+- 2025-10-22: Implemented inline error highlighting within the scene editor with click-to-edit tooltips
+- 2025-10-22: Created InlineEditor component with wavy underlines for issues (red/orange/blue) and suggestions (green)
+- 2025-10-22: Added position-based text highlighting with Apply/Ignore options in tooltips
+- 2025-10-22: Finalized UI layout: Story Bible (left), Scene Editor (top half), Issues panel (lower half), Chat (bottom)
 - 2025-10-21: Implemented intelligent automatic model selection based on chat prompts
 - 2025-10-21: Enhanced "Analyze" button to flag issues AND suggest AI corrections
 - 2025-10-21: Removed separate "Get AI Suggestions" and "Major Rewrite" buttons (auto-switching handles this)
@@ -104,17 +107,28 @@ The deterministic engine performs 15+ quality checks:
     - **Bottom**: AI Writing Assistant chat prompt line
 
 ### Scene Editor Features
+- **Inline Error Highlighting**: Issues and suggestions appear directly in the text with colored wavy underlines
+  - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity-based colors
+  - **AI Suggestions**: Green underlines for LLM-powered improvements
+  - Click any highlighted text to see a tooltip with details and actions
+  - **Tooltip actions**: Apply (for suggestions), Ignore (for both issues and suggestions)
+  - Semi-transparent text overlay when highlights are active for better visibility
+  - Position-based highlighting works with real-time text editing
+  
 - **Prose Analysis**: "Analyze & Suggest Fixes" button runs 16+ deterministic checks AND provides AI-powered corrections
-  - Flags spelling, grammar, and style violations
+  - Flags spelling, grammar, and style violations inline
   - Automatically suggests LLM-powered line-by-line improvements
-  - Shows old vs new text in red/green boxes
-  - Individual Apply/Reject buttons for each suggestion
+  - Highlights appear directly in the editor as you click on problematic text
+  - Individual Apply/Ignore options via click-to-edit tooltips
   - Respects style guide rules
   - Uses medium model for balanced speed and quality
-- **Issues & Suggestions Panel**: Right sidebar shows color-coded issues and AI suggestions
-  - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity levels
-  - **AI Suggestions**: Line-by-line edits with Apply/Reject controls
-  - Spans full height for easy review of all issues
+  
+- **Issues & Suggestions Panel**: Lower half shows summary of all flagged issues and AI suggestions
+  - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity levels with counts
+  - **AI Suggestions**: Line-by-line edits listed with old/new text and rationale
+  - Provides overview while inline highlighting shows exact locations
+  - Apply/Reject buttons available in both panel and inline tooltips
+  
 - **AI Writing Assistant**: Bottom chat bar spanning full width
   - Ask questions about your writing ("How can I fix the spelling errors?")
   - **Intelligent automatic model selection** based on your prompt:
