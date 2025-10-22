@@ -9,9 +9,10 @@ interface ChapterListProps {
   onUpdate: (id: string, chapter: Partial<Chapter>) => void
   onDelete: (id: string) => void
   onSelect: (id: string) => void
+  onNavigateToEditor?: () => void
 }
 
-export function ChapterList({ chapters, activeChapterId, onAdd, onUpdate, onDelete, onSelect }: ChapterListProps) {
+export function ChapterList({ chapters, activeChapterId, onAdd, onUpdate, onDelete, onSelect, onNavigateToEditor }: ChapterListProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showNewForm, setShowNewForm] = useState(false)
 
@@ -83,7 +84,12 @@ export function ChapterList({ chapters, activeChapterId, onAdd, onUpdate, onDele
           {sortedChapters.map(chapter => (
             <div 
               key={chapter.id} 
-              onClick={() => onSelect(chapter.id)}
+              onClick={() => {
+                onSelect(chapter.id)
+                if (onNavigateToEditor) {
+                  onNavigateToEditor()
+                }
+              }}
               style={{ 
                 border: chapter.id === activeChapterId ? '2px solid #2196f3' : '1px solid #ddd', 
                 borderRadius: 4, 

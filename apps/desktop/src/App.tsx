@@ -306,6 +306,7 @@ Generate a comprehensive story outline:`
             onUpdate={store.updateChapter}
             onDelete={store.deleteChapter}
             onSelect={store.setActiveChapter}
+            onNavigateToEditor={() => setActiveSection('editor')}
           />
         )
       case 'braindump':
