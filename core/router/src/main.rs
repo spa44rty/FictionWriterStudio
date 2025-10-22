@@ -59,7 +59,7 @@ struct MinorEditResp {
 
 async fn minor_edit(Json(req): Json<MinorEditReq>) -> Json<MinorEditResp> {
     let issues_summary = if let Some(issues) = &req.issues {
-        let mut summary = String::from("\n\nSPECIFIC ISSUES TO FIX:\n");
+        let mut summary = String::from("\n\nDETECTED ISSUES FOR REVIEW:\n");
         let issue_types: std::collections::HashMap<String, usize> = issues.iter()
             .filter_map(|i| i.get("kind").and_then(|k| k.as_str()))
             .fold(std::collections::HashMap::new(), |mut acc, kind| {
@@ -68,32 +68,32 @@ async fn minor_edit(Json(req): Json<MinorEditReq>) -> Json<MinorEditResp> {
             });
         
         for (kind, count) in issue_types.iter() {
-            summary.push_str(&format!("- {} occurrences of {}\n", count, kind));
+            summary.push_str(&format!("- {} instances of {}\n", count, kind));
         }
-        
-        summary.push_str("\nFocus on:\n");
-        summary.push_str("- Replace weak verbs (was, were, is, had, has, get, got) with stronger action verbs\n");
-        summary.push_str("- Remove or replace adverbs with stronger verbs\n");
-        summary.push_str("- Eliminate filler words (really, very, just, quite)\n");
-        summary.push_str("- Fix spelling errors and concatenated words\n");
-        summary.push_str("- Improve passive voice to active voice\n");
-        summary.push_str("- Replace clichés with fresh phrasing\n");
         summary
     } else {
         String::new()
     };
 
     let prompt = format!(
-        "SYSTEM: You are an expert prose editor. Perform targeted line-by-line edits that fix the specific issues listed below while preserving the author's voice and meaning.{}
+        "SYSTEM: You are a senior copy editor at a prestigious publishing house reviewing a manuscript chapter. Provide a professional editorial critique with line-by-line markup.{}
 
-STYLE RULES (must follow):
-- No em dashes in narration
-- No contractions in narration (dialogue may have contractions)
-- Maintain past tense and close-third POV
+EDITORIAL STANDARDS:
+- No em dashes in narration (house style)
+- No contractions in narration; dialogue may contract naturally
+- Maintain consistent past tense and close-third person POV
+- Strengthen weak verbs (was/were/is/had/has/get/got) → active, specific verbs
+- Eliminate adverbs where stronger verbs suffice
+- Remove filler words (really, very, just, quite, actually)
+- Fix spelling errors and word concatenations
+- Replace clichés and overused phrases with fresh language
+- Convert passive constructions to active voice
+- Ensure clarity, precision, and readability
 
-Return ONLY the revised text with no explanations.
+INSTRUCTIONS:
+Perform a thorough copy edit as you would for publication. Make each line stronger, clearer, and more engaging while preserving the author's voice and intent. Return ONLY the fully edited text with all improvements applied—no comments, no explanations, just the polished prose ready for the next editorial stage.
 
-TEXT:
+MANUSCRIPT TEXT:
 {}",
         issues_summary,
         req.text
