@@ -71,6 +71,10 @@ export default function App() {
   const store = useStoryStore()
 
   useEffect(() => {
+    store.loadData()
+  }, [])
+
+  useEffect(() => {
     if (store.activeChapterId) {
       const chapter = store.chapters.find(c => c.id === store.activeChapterId)
       if (chapter && chapter.content !== undefined) {

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { StoryBible, Character, Chapter } from './types'
+import { saveStoryData, loadStoryData, requestPersistentStorage, checkStorageQuota } from './db'
 
 interface ModelConfig {
   small: string
@@ -10,6 +11,8 @@ interface ModelConfig {
 interface StoryState extends StoryBible {
   models: ModelConfig
   activeChapterId: string | null
+  isLoaded: boolean
+  loadData: () => Promise<void>
   updateField: (field: keyof Omit<StoryBible, 'characters' | 'chapters'>, value: string) => void
   updateModel: (size: keyof ModelConfig, model: string) => void
   addCharacter: (character: Character) => void
@@ -22,7 +25,14 @@ interface StoryState extends StoryBible {
   updateChapterContent: (id: string, content: string) => void
 }
 
-export const useStoryStore = create<StoryState>((set) => ({
+const persistToIndexedDB = async (state: Partial<StoryState>) => {
+  const { isLoaded, loadData, updateField, updateModel, addCharacter, updateCharacter, deleteCharacter, 
+          addChapter, updateChapter, deleteChapter, setActiveChapter, updateChapterContent, ...dataToSave } = state as any
+  
+  await saveStoryData(dataToSave)
+}
+
+export const useStoryStore = create<StoryState>((set, get) => ({
   braindump: '',
   synopsis: '',
   outline: '',
@@ -32,48 +42,116 @@ export const useStoryStore = create<StoryState>((set) => ({
   characters: [],
   chapters: [],
   activeChapterId: null,
+  isLoaded: false,
   models: {
     small: 'llama3.2:3b',
     medium: 'llama3.2:latest',
     large: 'llama3:70b'
   },
   
-  updateField: (field, value) => set(() => ({ [field]: value })),
+  loadData: async () => {
+    try {
+      await requestPersistentStorage()
+      await checkStorageQuota()
+      
+      const savedData = await loadStoryData()
+      
+      if (savedData) {
+        set({
+          braindump: savedData.braindump || '',
+          synopsis: savedData.synopsis || '',
+          outline: savedData.outline || '',
+          worldbuilding: savedData.worldbuilding || '',
+          genre: savedData.genre || '',
+          styleGuide: savedData.styleGuide || '',
+          characters: savedData.characters || [],
+          chapters: savedData.chapters || [],
+          models: savedData.models || get().models,
+          isLoaded: true
+        })
+        console.log('✅ Story data loaded from IndexedDB')
+      } else {
+        set({ isLoaded: true })
+        console.log('📝 No saved data found, starting fresh')
+      }
+    } catch (error) {
+      console.error('Failed to load data:', error)
+      set({ isLoaded: true })
+    }
+  },
   
-  updateModel: (size, model) => set((state) => ({
-    models: { ...state.models, [size]: model }
-  })),
+  updateField: (field, value) => set((state) => {
+    const newState = { ...state, [field]: value }
+    persistToIndexedDB(newState)
+    return { [field]: value }
+  }),
   
-  addCharacter: (character) => set((state) => ({
-    characters: [...state.characters, character]
-  })),
+  updateModel: (size, model) => set((state) => {
+    const newState = { ...state, models: { ...state.models, [size]: model } }
+    persistToIndexedDB(newState)
+    return { models: { ...state.models, [size]: model } }
+  }),
   
-  updateCharacter: (id, updates) => set((state) => ({
-    characters: state.characters.map(c => c.id === id ? { ...c, ...updates } : c)
-  })),
+  addCharacter: (character) => set((state) => {
+    const newState = { ...state, characters: [...state.characters, character] }
+    persistToIndexedDB(newState)
+    return { characters: [...state.characters, character] }
+  }),
   
-  deleteCharacter: (id) => set((state) => ({
-    characters: state.characters.filter(c => c.id !== id)
-  })),
+  updateCharacter: (id, updates) => set((state) => {
+    const newState = { 
+      ...state, 
+      characters: state.characters.map(c => c.id === id ? { ...c, ...updates } : c)
+    }
+    persistToIndexedDB(newState)
+    return { characters: state.characters.map(c => c.id === id ? { ...c, ...updates } : c) }
+  }),
   
-  addChapter: (chapter) => set((state) => ({
-    chapters: [...state.chapters, chapter]
-  })),
+  deleteCharacter: (id) => set((state) => {
+    const newState = { ...state, characters: state.characters.filter(c => c.id !== id) }
+    persistToIndexedDB(newState)
+    return { characters: state.characters.filter(c => c.id !== id) }
+  }),
   
-  updateChapter: (id, updates) => set((state) => ({
-    chapters: state.chapters.map(c => c.id === id ? { ...c, ...updates } : c)
-  })),
+  addChapter: (chapter) => set((state) => {
+    const newState = { ...state, chapters: [...state.chapters, chapter] }
+    persistToIndexedDB(newState)
+    return { chapters: [...state.chapters, chapter] }
+  }),
   
-  deleteChapter: (id) => set((state) => ({
-    chapters: state.chapters.filter(c => c.id !== id),
-    activeChapterId: state.activeChapterId === id ? null : state.activeChapterId
-  })),
+  updateChapter: (id, updates) => set((state) => {
+    const newState = {
+      ...state,
+      chapters: state.chapters.map(c => c.id === id ? { ...c, ...updates } : c)
+    }
+    persistToIndexedDB(newState)
+    return { chapters: state.chapters.map(c => c.id === id ? { ...c, ...updates } : c) }
+  }),
+  
+  deleteChapter: (id) => set((state) => {
+    const newState = {
+      ...state,
+      chapters: state.chapters.filter(c => c.id !== id),
+      activeChapterId: state.activeChapterId === id ? null : state.activeChapterId
+    }
+    persistToIndexedDB(newState)
+    return {
+      chapters: state.chapters.filter(c => c.id !== id),
+      activeChapterId: state.activeChapterId === id ? null : state.activeChapterId
+    }
+  }),
   
   setActiveChapter: (id) => set(() => ({
     activeChapterId: id
   })),
   
-  updateChapterContent: (id, content) => set((state) => ({
-    chapters: state.chapters.map(c => c.id === id ? { ...c, content, wordCount: content.split(/\s+/).filter(w => w.length > 0).length } : c)
-  }))
+  updateChapterContent: (id, content) => set((state) => {
+    const wordCount = content.split(/\s+/).filter(w => w.length > 0).length
+    const newState = {
+      ...state,
+      chapters: state.chapters.map(c => c.id === id ? { ...c, content, wordCount } : c)
+    }
+    persistToIndexedDB(newState)
+    return { chapters: state.chapters.map(c => c.id === id ? { ...c, content, wordCount } : c) }
+  })
 }))
