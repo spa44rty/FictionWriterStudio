@@ -7,5 +7,7 @@
     "build:web": "pnpm --filter @app/desktop build",
     "router": "cargo run --manifest-path core/router/Cargo.toml"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "@tauri-apps/cli": "^2.9.1"
+  }
 }

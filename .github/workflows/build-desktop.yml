@@ -39,6 +39,13 @@ jobs:
         working-directory: apps/desktop
         run: npm install
 
+      - name: Verify icons exist
+        working-directory: apps/desktop/src-tauri/icons
+        shell: bash
+        run: |
+          echo "Checking for required icon files..."
+          ls -la icon.ico icon.icns 32x32.png 128x128.png 128x128@2x.png || echo "Some icons missing but build will continue"
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:

@@ -4,6 +4,7 @@
 An offline-first writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. Works as both a browser app and desktop app. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing. Browser version automatically saves all Story Bible data to IndexedDB for persistence.
 
 ## Recent Changes
+- 2025-10-22: Fixed GitHub Actions desktop build - generated all required icon formats (.ico, .icns, PNGs)
 - 2025-10-22: Added IndexedDB persistence for browser version - all Story Bible data automatically saved
 - 2025-10-22: Created OLLAMA_CORS_SETUP.md guide for browser version configuration
 - 2025-10-22: Browser version now primary deployment target with desktop as optional
