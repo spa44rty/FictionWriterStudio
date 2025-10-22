@@ -502,15 +502,39 @@ Summary:`
       <aside style={{ width: leftWidth, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto', flexShrink: 0 }}>
         {activeChapter && activeSection === 'editor' && (
           <div style={{ marginBottom: 16, padding: 12, background: '#e3f2fd', borderRadius: 4, border: '2px solid #2196f3' }}>
-            <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', marginBottom: 4 }}>Active Chapter</div>
-            <div style={{ fontWeight: 'bold', fontSize: 14, marginBottom: 4 }}>
-              Chapter {activeChapter.number}: {activeChapter.title}
-            </div>
-            {activeChapter.wordCount > 0 && (
-              <div style={{ fontSize: 12, color: '#666' }}>
-                {activeChapter.wordCount.toLocaleString()} words
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', marginBottom: 4 }}>Active Chapter</div>
+                <div style={{ fontWeight: 'bold', fontSize: 14, marginBottom: 4 }}>
+                  Chapter {activeChapter.number}: {activeChapter.title}
+                </div>
+                {activeChapter.wordCount > 0 && (
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    {activeChapter.wordCount.toLocaleString()} words
+                  </div>
+                )}
               </div>
-            )}
+              <button 
+                onClick={() => {
+                  store.updateChapterContent(activeChapter.id, text)
+                  autoGenerateSummary(activeChapter.id, text)
+                  alert('Chapter saved! AI summary will be generated in the background.')
+                }}
+                style={{ 
+                  padding: '6px 16px', 
+                  cursor: 'pointer',
+                  background: '#2196f3',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  fontWeight: 'bold',
+                  fontSize: 13,
+                  flexShrink: 0
+                }}
+              >
+                Save
+              </button>
+            </div>
           </div>
         )}
         <h3 style={{ marginTop: 0 }}>Story Bible</h3>
@@ -540,57 +564,26 @@ Summary:`
         {activeSection === 'editor' && (
           <>
             <hr style={{ margin: '16px 0' }} />
-            <h4 style={{ marginBottom: 8 }}>Editor Controls</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {activeChapter && (
-                <>
-                  <button 
-                    onClick={() => {
-                      store.updateChapterContent(activeChapter.id, text)
-                      autoGenerateSummary(activeChapter.id, text)
-                      alert('Chapter saved! AI summary will be generated in the background.')
-                    }}
-                    style={{ 
-                      padding: '8px 12px', 
-                      cursor: 'pointer',
-                      background: '#2196f3',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 4,
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    Save Chapter
-                  </button>
-                  <div style={{ fontSize: 11, color: '#666', marginTop: -4 }}>
-                    Saves content and auto-generates summary for AI context
-                  </div>
-                </>
-              )}
-              
-              <div style={{ marginTop: 8 }}>
-                <h5 style={{ margin: '0 0 8px 0', color: '#555' }}>Chapter Response</h5>
-                <div 
-                  style={{ 
-                    minHeight: 200, 
-                    maxHeight: 400,
-                    padding: 12, 
-                    background: '#fff', 
-                    border: '1px solid #ddd', 
-                    borderRadius: 4,
-                    overflow: 'auto',
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    color: '#333',
-                    whiteSpace: 'pre-wrap'
-                  }}
-                >
-                  {chapterResponse || 'Chat responses about your chapter will appear here...'}
-                </div>
-                <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>
-                  Use the AI Assistant below to ask questions and get feedback about your chapter
-                </div>
-              </div>
+            <h4 style={{ marginBottom: 8 }}>Chapter Response</h4>
+            <div 
+              style={{ 
+                minHeight: 200, 
+                maxHeight: 400,
+                padding: 12, 
+                background: '#fff', 
+                border: '1px solid #ddd', 
+                borderRadius: 4,
+                overflow: 'auto',
+                fontSize: 13,
+                lineHeight: 1.6,
+                color: '#333',
+                whiteSpace: 'pre-wrap'
+              }}
+            >
+              {chapterResponse || 'Chat responses about your chapter will appear here...'}
+            </div>
+            <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>
+              Use the AI Assistant below to ask questions and get feedback about your chapter
             </div>
           </>
         )}

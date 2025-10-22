@@ -123,8 +123,7 @@ The deterministic engine performs 15+ quality checks:
 ### Chapter Editor Layout
 - **Three-section layout:**
   - **Left Sidebar**: Story Bible navigation with resizable drag handle (200-500px)
-    - Active chapter display at top
-    - Editor Controls section with Save Chapter button
+    - Active chapter display at top with integrated Save button
     - Chapter Response text window showing chat feedback
   - **Main Area**: Chapter Editor for writing individual chapter content (full height)
   - **Bottom**: AI Writing Assistant chat prompt line
@@ -136,15 +135,14 @@ The deterministic engine performs 15+ quality checks:
   - Automatically navigates to editor when chapter is clicked
   - Chapter title shown in editor header (e.g., "Chapter 1: The Beginning")
   
-- **Save Chapter Button**: Saves current chapter content and auto-generates summary
-  - Only appears when a chapter is selected
-  - Updates chapter with content and recalculates word count
+- **Save Button**: Integrated into active chapter box for quick access
+  - Appears in top-right of active chapter display
+  - Saves current chapter content and recalculates word count
   - **Automatically generates invisible summary** in background using small model
   - Summaries are hidden from user - purely for AI context
   - Previous chapter summaries included in AI queries (avoids sending full text)
   - Essential for maintaining plot consistency without hitting token limits
   - Shows success confirmation when saved
-  - Content persists when switching between chapters
 
 - **Chapter Response Window**: Dedicated text display for AI feedback about your chapter
   - Located in Editor Controls section (left sidebar)
