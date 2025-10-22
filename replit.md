@@ -4,6 +4,9 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Enhanced AI prompting to include specific issues found for targeted line-level fixes
+- 2025-10-22: Added concatenated words detection (e.g., "thedark" → suggests "the dark")
+- 2025-10-22: Improved analyzer to provide context-aware suggestions for weak verbs, adverbs, and fillers
 - 2025-10-22: Added intelligent spelling correction suggestions using Levenshtein distance algorithm
 - 2025-10-22: Implemented click-to-apply spelling corrections directly in issue tooltips
 - 2025-10-22: Enhanced spelling checker to suggest top 3 most similar words from dictionary
