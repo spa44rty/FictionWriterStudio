@@ -6,6 +6,7 @@ interface Issue {
   message: string
   position?: { start: number, end: number }
   text?: string
+  suggestions?: string[]
 }
 
 interface Suggestion {
@@ -285,6 +286,45 @@ export const InlineEditor = forwardRef<InlineEditorRef, InlineEditorProps>(({
                 <code style={{ fontSize: 12, color: '#666' }}>{activeTooltip.item.kind}</code>
               </div>
               <p style={{ fontSize: 14, margin: '8px 0' }}>{activeTooltip.item.message}</p>
+              
+              {/* Show spelling suggestions if available */}
+              {activeTooltip.item.suggestions && activeTooltip.item.suggestions.length > 0 && (
+                <div style={{ marginTop: 12, marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 6, color: '#333' }}>
+                    Suggestions:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {activeTooltip.item.suggestions.map((suggestion: string, idx: number) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          if (activeTooltip.item.position) {
+                            const newText = value.substring(0, activeTooltip.item.position.start) +
+                                          suggestion +
+                                          value.substring(activeTooltip.item.position.end)
+                            onChange(newText)
+                            onIgnoreIssue(activeTooltip.item)
+                            setActiveTooltip(null)
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          background: '#4caf50',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          fontSize: 13,
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <button
                 onClick={() => {
                   onIgnoreIssue(activeTooltip.item)
