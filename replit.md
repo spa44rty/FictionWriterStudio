@@ -129,11 +129,10 @@ The deterministic engine performs 15+ quality checks:
 - Navigation between sections via clickable sidebar
 
 ### Chapter Editor Layout
-- **Three-section vertical layout:**
+- **Two-section vertical layout:**
   - **Left Sidebar**: Story Bible navigation with resizable drag handle (200-500px)
   - **Center/Right Area (stacked vertically)**:
-    - **Top 50%**: Chapter Editor for writing individual chapter content
-    - **Middle 50%**: Issues & Suggestions panel
+    - **Full height**: Chapter Editor for writing individual chapter content
     - **Bottom**: AI Writing Assistant chat prompt line
 
 ### Chapter Editor Features
@@ -157,6 +156,7 @@ The deterministic engine performs 15+ quality checks:
   - **Tooltip actions**: Apply (for suggestions), Ignore (for both issues and suggestions)
   - Semi-transparent text overlay when highlights are active for better visibility
   - Position-based highlighting works with real-time text editing
+  - All issues and suggestions visible directly in the text with inline tooltips
   
 - **Intelligent Spelling Corrections**: Automatic spelling error detection with smart suggestions
   - **Levenshtein distance algorithm** finds up to 3 most similar words from dictionary
@@ -177,13 +177,6 @@ The deterministic engine performs 15+ quality checks:
   - Individual Apply/Ignore options for each suggestion
   - Uses medium model for balanced speed and quality
   - All suggestions include rationale: "Copy edit: improved clarity, precision, and readability per publishing standards"
-  
-- **Issues & Suggestions Panel**: Lower half shows summary of all flagged issues and AI suggestions
-  - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity levels with counts
-  - **AI Suggestions**: Line-by-line edits listed with old/new text and rationale
-  - **Click to jump**: Click any issue or suggestion in the panel to jump to its exact location in the editor
-  - Provides overview while inline highlighting shows exact locations
-  - Apply/Reject buttons available in both panel and inline tooltips
   
 - **AI Writing Assistant**: Bottom chat bar spanning full width
   - Ask questions about your writing ("How can I fix the spelling errors?")
