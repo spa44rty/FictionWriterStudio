@@ -4,12 +4,13 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Added Story Bible context to all AI chat queries (genre, synopsis, outline, worldbuilding, style guide, characters)
+- 2025-10-22: Added previous chapter summaries to chat context to avoid token limits
+- 2025-10-22: Added "Generate Summary" button to auto-create brief chapter summaries using AI
+- 2025-10-22: Chat now includes full Story Bible + previous chapter summaries + current chapter content
 - 2025-10-22: Removed Copy Editor Critique button, replaced with Chapter Response text window for chat-based chapter interaction
 - 2025-10-22: Chat responses now appear in dedicated text window in Editor Controls section
 - 2025-10-22: Simplified UI: removed critique popup and inline highlighting system
-- 2025-10-22: Transformed Scene Editor into Chapter Editor with individual chapter content storage and save functionality
-- 2025-10-22: Added Chapters section above Story Bible for chapter management
-- 2025-10-22: Added "Generate Outline" button to Synopsis tab for AI-powered outline creation
 - 2025-10-21: Implemented intelligent automatic model selection based on chat prompts
 - 2025-10-21: Enhanced "Analyze" button to flag issues AND suggest AI corrections
 - 2025-10-21: Removed separate "Get AI Suggestions" and "Major Rewrite" buttons (auto-switching handles this)
@@ -141,6 +142,14 @@ The deterministic engine performs 15+ quality checks:
   - Shows success confirmation when saved
   - Content persists when switching between chapters
 
+- **Generate Summary Button**: AI-powered chapter summarization
+  - Creates 2-3 sentence summary of current chapter
+  - Uses small model for fast generation
+  - Summaries stored with each chapter
+  - Previous chapter summaries included in AI context (avoids sending full text)
+  - Can also manually edit summaries in Chapter form
+  - Essential for maintaining context without hitting token limits
+
 - **Chapter Response Window**: Dedicated text display for AI feedback about your chapter
   - Located in Editor Controls section (left sidebar)
   - Shows real-time chat responses about your writing
@@ -149,13 +158,17 @@ The deterministic engine performs 15+ quality checks:
   - Automatically updates when you ask questions via AI Assistant
   - Clears when switching chapters
   
-- **AI Writing Assistant**: Bottom chat bar spanning full width
+- **AI Writing Assistant**: Bottom chat bar spanning full width with comprehensive context
   - Ask questions about your writing ("How can I make this chapter better?", "What issues do you see?")
+  - **Full Story Bible context included** with every query:
+    - Genre, synopsis, outline, worldbuilding, style guide
+    - All character details (descriptions, personalities, voice tones, backgrounds)
+  - **Previous chapter summaries** (not full text) for continuity
+  - Current chapter content
   - **Intelligent automatic model selection** based on your prompt:
     - Simple questions/explanations → Small model (fast)
     - Fix/improve/edit requests → Medium model (balanced)
     - Rewrite/regenerate/transform → Large model (highest quality)
-  - Context-aware responses based on current chapter content
   - Responses appear in Chapter Response window (left sidebar)
   - Shows which model was used with each response
   - Press Enter or click Ask to submit questions

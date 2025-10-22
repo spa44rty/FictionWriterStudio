@@ -123,11 +123,58 @@ export default function App() {
     try {
       const selectedModel = selectModelForPrompt(userPrompt)
       
-      const modelInfo = selectedModel === store.models.large ? ' (large model)' : 
-                       selectedModel === store.models.medium ? ' (medium model)' : 
-                       selectedModel === store.models.small ? ' (small model)' : ''
+      const modelInfo = selectedModel === store.models.large ? 'large model' : 
+                       selectedModel === store.models.medium ? 'medium model' : 
+                       selectedModel === store.models.small ? 'small model' : ''
       
-      const response = await chat(userPrompt, selectedModel, text)
+      const contextParts = []
+      
+      contextParts.push('=== STORY BIBLE ===')
+      if (store.genre) contextParts.push(`Genre: ${store.genre}`)
+      if (store.synopsis) contextParts.push(`\nSynopsis:\n${store.synopsis}`)
+      if (store.outline) contextParts.push(`\nOutline:\n${store.outline}`)
+      if (store.worldbuilding) contextParts.push(`\nWorldbuilding:\n${store.worldbuilding}`)
+      if (store.styleGuide) contextParts.push(`\nStyle Guide:\n${store.styleGuide}`)
+      
+      if (store.characters.length > 0) {
+        contextParts.push('\nCharacters:')
+        store.characters.forEach(char => {
+          contextParts.push(`\n- ${char.name} (${char.characterType})`)
+          if (char.description) contextParts.push(`  Description: ${char.description}`)
+          if (char.personality) contextParts.push(`  Personality: ${char.personality}`)
+          if (char.voiceTone) contextParts.push(`  Voice: ${char.voiceTone}`)
+          if (char.background) contextParts.push(`  Background: ${char.background}`)
+        })
+      }
+      
+      const currentChapter = store.chapters.find(c => c.id === store.activeChapterId)
+      if (currentChapter) {
+        const previousChapters = store.chapters
+          .filter(c => c.number < currentChapter.number)
+          .sort((a, b) => a.number - b.number)
+        
+        if (previousChapters.length > 0) {
+          contextParts.push('\n\n=== PREVIOUS CHAPTERS (SUMMARIES) ===')
+          previousChapters.forEach(ch => {
+            contextParts.push(`\nChapter ${ch.number}: ${ch.title}`)
+            if (ch.summary) {
+              contextParts.push(ch.summary)
+            } else {
+              contextParts.push('(No summary available)')
+            }
+          })
+        }
+        
+        contextParts.push(`\n\n=== CURRENT CHAPTER (Chapter ${currentChapter.number}: ${currentChapter.title}) ===`)
+      } else {
+        contextParts.push('\n\n=== CURRENT TEXT ===')
+      }
+      
+      contextParts.push(text)
+      
+      const fullContext = contextParts.join('\n')
+      
+      const response = await chat(userPrompt, selectedModel, fullContext)
       const fullResponse = `${response.response}\n\n[Model used: ${modelInfo}]`
       setChapterResponse(fullResponse)
     } catch (err) {
@@ -161,6 +208,36 @@ Generate a comprehensive story outline:`
       alert('Could not generate outline. Make sure Ollama is running with the medium model installed.')
     } finally {
       setGeneratingOutline(false)
+    }
+  }
+
+  const [generatingSummary, setGeneratingSummary] = useState(false)
+
+  async function onGenerateSummary() {
+    const currentChapter = store.chapters.find(c => c.id === store.activeChapterId)
+    if (!currentChapter || !text.trim()) {
+      alert('Please write some chapter content first.')
+      return
+    }
+    
+    setGeneratingSummary(true)
+    try {
+      const prompt = `Summarize this chapter in 2-3 concise sentences. Focus on key events, character development, and plot progression. Keep it brief but informative.
+
+Chapter ${currentChapter.number}: ${currentChapter.title}
+
+${text}
+
+Summary:`
+
+      const response = await chat(prompt, store.models.small)
+      store.updateChapter(currentChapter.id, { summary: response.response.trim() })
+      alert('Chapter summary generated!')
+    } catch (err) {
+      console.error('Summary generation error:', err)
+      alert('Could not generate summary. Make sure Ollama is running with a model installed.')
+    } finally {
+      setGeneratingSummary(false)
     }
   }
 
@@ -496,6 +573,25 @@ Generate a comprehensive story outline:`
                   </button>
                   <div style={{ fontSize: 11, color: '#666', marginTop: -4 }}>
                     Save current chapter content and update word count
+                  </div>
+                  
+                  <button 
+                    onClick={onGenerateSummary}
+                    disabled={generatingSummary || !text.trim()}
+                    style={{ 
+                      padding: '8px 12px', 
+                      cursor: generatingSummary || !text.trim() ? 'not-allowed' : 'pointer',
+                      background: generatingSummary || !text.trim() ? '#ccc' : '#9c27b0',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 4,
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {generatingSummary ? 'Generating...' : 'Generate Summary'}
+                  </button>
+                  <div style={{ fontSize: 11, color: '#666', marginTop: -4 }}>
+                    AI creates a brief summary for context in future chapters
                   </div>
                 </>
               )}
