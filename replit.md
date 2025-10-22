@@ -4,6 +4,9 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Added intelligent spelling correction suggestions using Levenshtein distance algorithm
+- 2025-10-22: Implemented click-to-apply spelling corrections directly in issue tooltips
+- 2025-10-22: Enhanced spelling checker to suggest top 3 most similar words from dictionary
 - 2025-10-22: Added click-to-jump navigation from Issues & Suggestions panel to exact locations in scene editor
 - 2025-10-22: Implemented inline error highlighting within the scene editor with click-to-edit tooltips
 - 2025-10-22: Created InlineEditor component with wavy underlines for issues (red/orange/blue) and suggestions (green)
@@ -115,6 +118,15 @@ The deterministic engine performs 15+ quality checks:
   - **Tooltip actions**: Apply (for suggestions), Ignore (for both issues and suggestions)
   - Semi-transparent text overlay when highlights are active for better visibility
   - Position-based highlighting works with real-time text editing
+  
+- **Intelligent Spelling Corrections**: Automatic spelling error detection with smart suggestions
+  - **Levenshtein distance algorithm** finds up to 3 most similar words from dictionary
+  - Click misspelled word to see correction suggestions in tooltip
+  - **Click-to-apply**: Each suggestion appears as a green button - click to replace instantly
+  - Suggestions appear inline (e.g., "waz" → shows "was", "way", "wax")
+  - Only suggests words within edit distance of 2 for accuracy
+  - Filters by word length similarity (within 2 characters)
+  - Works with the existing Ignore button if suggestions aren't helpful
   
 - **Prose Analysis**: "Analyze & Suggest Fixes" button runs 16+ deterministic checks AND provides AI-powered corrections
   - Flags spelling, grammar, and style violations inline
