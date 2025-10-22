@@ -4,21 +4,12 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Removed Copy Editor Critique button, replaced with Chapter Response text window for chat-based chapter interaction
+- 2025-10-22: Chat responses now appear in dedicated text window in Editor Controls section
+- 2025-10-22: Simplified UI: removed critique popup and inline highlighting system
 - 2025-10-22: Transformed Scene Editor into Chapter Editor with individual chapter content storage and save functionality
 - 2025-10-22: Added Chapters section above Story Bible for chapter management
-- 2025-10-22: Transformed analyzer to "Copy Editor Critique" - professional publishing-house editorial review
 - 2025-10-22: Added "Generate Outline" button to Synopsis tab for AI-powered outline creation
-- 2025-10-22: Enhanced AI prompting to include specific issues found for targeted line-level fixes
-- 2025-10-22: Added concatenated words detection (e.g., "thedark" → suggests "the dark")
-- 2025-10-22: Improved analyzer to provide context-aware suggestions for weak verbs, adverbs, and fillers
-- 2025-10-22: Added intelligent spelling correction suggestions using Levenshtein distance algorithm
-- 2025-10-22: Implemented click-to-apply spelling corrections directly in issue tooltips
-- 2025-10-22: Enhanced spelling checker to suggest top 3 most similar words from dictionary
-- 2025-10-22: Added click-to-jump navigation from Issues & Suggestions panel to exact locations in scene editor
-- 2025-10-22: Implemented inline error highlighting within the scene editor with click-to-edit tooltips
-- 2025-10-22: Created InlineEditor component with wavy underlines for issues (red/orange/blue) and suggestions (green)
-- 2025-10-22: Added position-based text highlighting with Apply/Ignore options in tooltips
-- 2025-10-22: Finalized UI layout: Story Bible (left), Scene Editor (top half), Issues panel (lower half), Chat (bottom)
 - 2025-10-21: Implemented intelligent automatic model selection based on chat prompts
 - 2025-10-21: Enhanced "Analyze" button to flag issues AND suggest AI corrections
 - 2025-10-21: Removed separate "Get AI Suggestions" and "Major Rewrite" buttons (auto-switching handles this)
@@ -129,11 +120,13 @@ The deterministic engine performs 15+ quality checks:
 - Navigation between sections via clickable sidebar
 
 ### Chapter Editor Layout
-- **Two-section vertical layout:**
+- **Three-section layout:**
   - **Left Sidebar**: Story Bible navigation with resizable drag handle (200-500px)
-  - **Center/Right Area (stacked vertically)**:
-    - **Full height**: Chapter Editor for writing individual chapter content
-    - **Bottom**: AI Writing Assistant chat prompt line
+    - Active chapter display at top
+    - Editor Controls section with Save Chapter button
+    - Chapter Response text window showing chat feedback
+  - **Main Area**: Chapter Editor for writing individual chapter content (full height)
+  - **Bottom**: AI Writing Assistant chat prompt line
 
 ### Chapter Editor Features
 - **Individual Chapter Storage**: Each chapter stores its own content separately
@@ -148,52 +141,23 @@ The deterministic engine performs 15+ quality checks:
   - Shows success confirmation when saved
   - Content persists when switching between chapters
 
-
-- **Inline Error Highlighting**: Issues and suggestions appear directly in the text with colored wavy underlines
-  - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity-based colors
-  - **AI Suggestions**: Green underlines for LLM-powered improvements
-  - Click any highlighted text to see a tooltip with details and actions
-  - **Tooltip actions**: Apply (for suggestions), Ignore (for both issues and suggestions)
-  - Semi-transparent text overlay when highlights are active for better visibility
-  - Position-based highlighting works with real-time text editing
-  - All issues and suggestions visible directly in the text with inline tooltips
-  
-- **Intelligent Spelling Corrections**: Automatic spelling error detection with smart suggestions
-  - **Levenshtein distance algorithm** finds up to 3 most similar words from dictionary
-  - Click misspelled word to see correction suggestions in tooltip
-  - **Click-to-apply**: Each suggestion appears as a green button - click to replace instantly
-  - Suggestions appear inline (e.g., "waz" → shows "was", "way", "wax")
-  - Only suggests words within edit distance of 2 for accuracy
-  - Filters by word length similarity (within 2 characters)
-  - Works with the existing Ignore button if suggestions aren't helpful
-  
-- **Copy Editor Critique**: Professional publishing-house editorial review with comprehensive markup
-  - **"Copy Editor Critique" button**: Acts as senior copy editor at prestigious publishing house
-  - Runs 16+ deterministic checks to detect issues (spelling, grammar, style, weak verbs, adverbs, fillers, clichés)
-  - Provides AI-powered line-by-line improvements as if preparing manuscript for publication
-  - **Editorial standards**: Strengthens weak verbs, eliminates adverbs/fillers, fixes spelling, replaces clichés, converts passive to active voice
-  - **Preserves author's voice**: Makes prose stronger, clearer, and more engaging while maintaining intent
-  - **Dual feedback system**:
-    - **Popup window**: Opens after critique completes, showing all issues and suggestions organized by category
-    - **Inline highlights**: Issues and suggestions appear directly in the editor with click-to-edit tooltips
-  - **Popup window features**:
-    - "Issues Found" section with severity badges (ERROR/WARNING/INFO) and color-coded borders
-    - "AI Suggestions" section with original vs. suggested text in side-by-side view
-    - Apply/Ignore buttons for each suggestion directly in the popup
-    - Click "Apply This Change" closes popup and applies the edit
-    - Scrollable for long critiques
-  - Individual Apply/Ignore options for each suggestion (both popup and inline)
-  - Uses medium model for balanced speed and quality
-  - All suggestions include rationale: "Copy edit: improved clarity, precision, and readability per publishing standards"
+- **Chapter Response Window**: Dedicated text display for AI feedback about your chapter
+  - Located in Editor Controls section (left sidebar)
+  - Shows real-time chat responses about your writing
+  - Scrollable text area (200-400px height)
+  - Displays model used (small/medium/large) with each response
+  - Automatically updates when you ask questions via AI Assistant
+  - Clears when switching chapters
   
 - **AI Writing Assistant**: Bottom chat bar spanning full width
-  - Ask questions about your writing ("How can I fix the spelling errors?")
+  - Ask questions about your writing ("How can I make this chapter better?", "What issues do you see?")
   - **Intelligent automatic model selection** based on your prompt:
     - Simple questions/explanations → Small model (fast)
     - Fix/improve/edit requests → Medium model (balanced)
     - Rewrite/regenerate/transform → Large model (highest quality)
-  - Context-aware responses based on current text
-  - Shows last response preview below prompt line
+  - Context-aware responses based on current chapter content
+  - Responses appear in Chapter Response window (left sidebar)
+  - Shows which model was used with each response
   - Press Enter or click Ask to submit questions
 
 ## Development Notes
@@ -214,7 +178,7 @@ The app uses a **three-tier model strategy** with **automatic intelligent select
 
 ### Medium Model (Copy Editing & Improvements)
 - **Default**: `llama3.2:latest` (7-8B parameters)
-- **Auto-selected for**: Fix/improve requests, "Copy Editor Critique" button
+- **Auto-selected for**: Fix/improve requests, editing suggestions
 - **Keywords**: "fix", "correct", "improve", "suggest", "edit", "change", "revise"
 - **Alternatives**: `mistral`, `qwen2.5:7b`
 
@@ -225,9 +189,8 @@ The app uses a **three-tier model strategy** with **automatic intelligent select
 - **Alternatives**: `qwen2.5:72b`, `mixtral:8x7b`
 
 ### How It Works
-1. **Copy Editor Critique button**: Always uses medium model for balanced quality and professional editorial review
-2. **Chat interface**: Analyzes your prompt and automatically selects the best model
-3. **Model indication**: Chat responses show which model was used
-4. **Configuration**: Change models in the **AI Models** settings page
-5. **Offline**: All models run locally through Ollama
-6. **Installation**: `ollama pull <model-name>`
+1. **Chat interface**: Analyzes your prompt and automatically selects the best model
+2. **Model indication**: Chat responses show which model was used in the Chapter Response window
+3. **Configuration**: Change models in the **AI Models** settings page
+4. **Offline**: All models run locally through Ollama
+5. **Installation**: `ollama pull <model-name>`

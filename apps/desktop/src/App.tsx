@@ -55,26 +55,18 @@ function useApi() {
   return { heuristics, minorEdit, chat }
 }
 
-interface ChatMessage {
-  role: 'user' | 'assistant'
-  content: string
-}
 
 export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('editor')
   const [text, setText] = useState<string>(`He waz very coldd. Then he realizd it was absolutly late. She walkked slowely and quietley through the darkk corrider—her hart beetingg. At the end of the day, it was realy just a mater of time before evrything was discovred.`)
-  const [issues, setIssues] = useState<any[]>([])
-  const [suggestions, setSuggestions] = useState<any[]>([])
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chapterResponse, setChapterResponse] = useState<string>('')
   const [chatInput, setChatInput] = useState('')
   const [loadingChat, setLoadingChat] = useState(false)
   const [leftWidth, setLeftWidth] = useState(280)
   const [isDraggingLeft, setIsDraggingLeft] = useState(false)
   const [generatingOutline, setGeneratingOutline] = useState(false)
-  const [showCritiqueModal, setShowCritiqueModal] = useState(false)
   const editorRef = useRef<InlineEditorRef>(null)
-  const { heuristics, minorEdit, chat } = useApi()
+  const { chat } = useApi()
 
   const store = useStoryStore()
 
@@ -83,89 +75,11 @@ export default function App() {
       const chapter = store.chapters.find(c => c.id === store.activeChapterId)
       if (chapter && chapter.content !== undefined) {
         setText(chapter.content)
-        setIssues([])
-        setSuggestions([])
+        setChapterResponse('')
       }
     }
   }, [store.activeChapterId])
 
-  async function onAnalyze() {
-    setLoadingSuggestions(true)
-    setIssues([])
-    setSuggestions([])
-    
-    try {
-      const r = await heuristics(text)
-      // Map issues to include position in the format expected by InlineEditor
-      const mappedIssues = (r.issues || []).map((issue: any) => ({
-        ...issue,
-        position: { start: issue.start, end: issue.end },
-        text: text.substring(issue.start, issue.end)
-      }))
-      setIssues(mappedIssues)
-      
-      if (r.issues && r.issues.length > 0) {
-        try {
-          const aiResult = await minorEdit(text, store.models.medium, r.issues)
-          // Map suggestions to include positions by finding the old text
-          const mappedSuggestions = (aiResult.edits || []).map((edit: any) => {
-            const lines = text.split('\n')
-            if (edit.line > 0 && edit.line <= lines.length) {
-              const lineIndex = edit.line - 1
-              const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0)
-              const oldTextIndex = lines[lineIndex].indexOf(edit.old)
-              if (oldTextIndex !== -1) {
-                return {
-                  ...edit,
-                  position: {
-                    start: lineStart + oldTextIndex,
-                    end: lineStart + oldTextIndex + edit.old.length
-                  }
-                }
-              }
-            }
-            return edit
-          })
-          setSuggestions(mappedSuggestions)
-        } catch (aiErr) {
-          console.error('AI suggestion error:', aiErr)
-          alert('Found issues, but could not get AI suggestions. Make sure Ollama is running with the medium model installed.')
-        }
-      }
-      
-      setShowCritiqueModal(true)
-    } catch (err) {
-      console.error('Analysis error:', err)
-      alert('Could not run analysis. Check that the backend is running on port 8000.')
-    } finally {
-      setLoadingSuggestions(false)
-    }
-  }
-
-  function applySuggestion(edit: any) {
-    if (edit.position) {
-      // Apply using position
-      const before = text.substring(0, edit.position.start)
-      const after = text.substring(edit.position.end)
-      setText(before + edit.new + after)
-    } else {
-      // Fallback to line-based
-      const lines = text.split('\n')
-      if (edit.line > 0 && edit.line <= lines.length) {
-        lines[edit.line - 1] = edit.new
-        setText(lines.join('\n'))
-      }
-    }
-    setSuggestions(suggestions.filter(s => s !== edit))
-  }
-
-  function rejectSuggestion(edit: any) {
-    setSuggestions(suggestions.filter(s => s !== edit))
-  }
-
-  function ignoreIssue(issue: any) {
-    setIssues(issues.filter(i => i !== issue))
-  }
 
   function selectModelForPrompt(prompt: string): string {
     const lower = prompt.toLowerCase()
@@ -201,31 +115,24 @@ export default function App() {
   async function onSendChat() {
     if (!chatInput.trim()) return
     
-    const userMessage: ChatMessage = { role: 'user', content: chatInput }
     const userPrompt = chatInput
-    setChatMessages(prev => [...prev, userMessage])
     setChatInput('')
     setLoadingChat(true)
+    setChapterResponse('Analyzing your chapter...')
 
     try {
       const selectedModel = selectModelForPrompt(userPrompt)
       
-      const modelInfo = selectedModel === store.models.large ? ' (using large model)' : 
-                       selectedModel === store.models.medium ? ' (using medium model)' : ''
+      const modelInfo = selectedModel === store.models.large ? ' (large model)' : 
+                       selectedModel === store.models.medium ? ' (medium model)' : 
+                       selectedModel === store.models.small ? ' (small model)' : ''
       
       const response = await chat(userPrompt, selectedModel, text)
-      const assistantMessage: ChatMessage = { 
-        role: 'assistant', 
-        content: response.response + (modelInfo ? `\n\n_${modelInfo}_` : '')
-      }
-      setChatMessages(prev => [...prev, assistantMessage])
+      const fullResponse = `${response.response}\n\n[Model used: ${modelInfo}]`
+      setChapterResponse(fullResponse)
     } catch (err) {
       console.error('Chat error:', err)
-      const errorMessage: ChatMessage = {
-        role: 'assistant',
-        content: 'Sorry, I cannot respond right now. Make sure Ollama is running with a model installed.'
-      }
-      setChatMessages(prev => [...prev, errorMessage])
+      setChapterResponse('Sorry, I cannot respond right now. Make sure Ollama is running with a model installed.')
     } finally {
       setLoadingChat(false)
     }
@@ -471,11 +378,11 @@ Generate a comprehensive story outline:`
                 ref={editorRef}
                 value={text}
                 onChange={setText}
-                issues={issues}
-                suggestions={suggestions}
-                onIgnoreIssue={ignoreIssue}
-                onApplySuggestion={applySuggestion}
-                onIgnoreSuggestion={rejectSuggestion}
+                issues={[]}
+                suggestions={[]}
+                onIgnoreIssue={() => {}}
+                onApplySuggestion={() => {}}
+                onIgnoreSuggestion={() => {}}
               />
             </div>
 
@@ -515,14 +422,6 @@ Generate a comprehensive story outline:`
                   {loadingChat ? 'Thinking...' : 'Ask'}
                 </button>
               </div>
-              {chatMessages.length > 0 && (
-                <div style={{ marginTop: 8, padding: 8, background: '#fff', borderRadius: 4, maxHeight: 80, overflow: 'auto' }}>
-                  <div style={{ fontSize: 12, color: '#666' }}>
-                    <strong>Last response:</strong> {chatMessages[chatMessages.length - 1].content.substring(0, 150)}
-                    {chatMessages[chatMessages.length - 1].content.length > 150 ? '...' : ''}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )
@@ -600,23 +499,29 @@ Generate a comprehensive story outline:`
                   </div>
                 </>
               )}
-              <button 
-                onClick={onAnalyze} 
-                disabled={loadingSuggestions}
-                style={{ 
-                  padding: '8px 12px', 
-                  cursor: loadingSuggestions ? 'wait' : 'pointer',
-                  background: loadingSuggestions ? '#ccc' : '#4caf50',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 4,
-                  fontWeight: 'bold'
-                }}
-              >
-                {loadingSuggestions ? 'Reviewing...' : 'Copy Editor Critique'}
-              </button>
-              <div style={{ fontSize: 11, color: '#666', marginTop: -4 }}>
-                Professional publishing-house markup with detailed suggestions
+              
+              <div style={{ marginTop: 8 }}>
+                <h5 style={{ margin: '0 0 8px 0', color: '#555' }}>Chapter Response</h5>
+                <div 
+                  style={{ 
+                    minHeight: 200, 
+                    maxHeight: 400,
+                    padding: 12, 
+                    background: '#fff', 
+                    border: '1px solid #ddd', 
+                    borderRadius: 4,
+                    overflow: 'auto',
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    color: '#333',
+                    whiteSpace: 'pre-wrap'
+                  }}
+                >
+                  {chapterResponse || 'Chat responses about your chapter will appear here...'}
+                </div>
+                <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>
+                  Use the AI Assistant below to ask questions and get feedback about your chapter
+                </div>
               </div>
             </div>
           </>
@@ -637,210 +542,6 @@ Generate a comprehensive story outline:`
       <main style={{ flex: 1, overflow: 'hidden', background: '#fafafa' }}>
         {renderContent()}
       </main>
-
-      {/* Critique Modal */}
-      {showCritiqueModal && (
-        <div 
-          style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            bottom: 0, 
-            background: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000
-          }}
-          onClick={() => setShowCritiqueModal(false)}
-        >
-          <div 
-            style={{ 
-              background: '#fff', 
-              borderRadius: 8, 
-              width: '80%', 
-              maxWidth: 900,
-              maxHeight: '80vh',
-              overflow: 'auto',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div style={{ 
-              padding: '16px 24px', 
-              borderBottom: '2px solid #ddd',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              position: 'sticky',
-              top: 0,
-              background: '#fff',
-              zIndex: 1
-            }}>
-              <h2 style={{ margin: 0 }}>Copy Editor Critique</h2>
-              <button
-                onClick={() => setShowCritiqueModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  background: '#f44336',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
-                }}
-              >
-                Close
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div style={{ padding: 24 }}>
-              {/* Issues Section */}
-              <div style={{ marginBottom: 32 }}>
-                <h3 style={{ marginTop: 0, marginBottom: 16, color: '#333' }}>
-                  Issues Found ({issues.length})
-                </h3>
-                {issues.length === 0 ? (
-                  <p style={{ color: '#666', fontStyle: 'italic' }}>No issues found. Your prose looks clean!</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {issues.map((issue, idx) => {
-                      const severityColors = {
-                        error: '#dc3545',
-                        warning: '#ff9800',
-                        info: '#2196f3'
-                      };
-                      const color = severityColors[issue.severity as keyof typeof severityColors] || '#666';
-                      
-                      return (
-                        <div 
-                          key={idx}
-                          style={{ 
-                            padding: 16,
-                            border: `1px solid ${color}`,
-                            borderLeft: `4px solid ${color}`,
-                            borderRadius: 4,
-                            background: '#fafafa'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            <span style={{ 
-                              fontSize: 10, 
-                              fontWeight: 'bold', 
-                              color: '#fff',
-                              background: color,
-                              padding: '3px 8px',
-                              borderRadius: 3,
-                              textTransform: 'uppercase'
-                            }}>
-                              {issue.severity}
-                            </span>
-                            <code style={{ fontSize: 12, color: '#666', background: '#fff', padding: '2px 6px', borderRadius: 3 }}>
-                              {issue.kind}
-                            </code>
-                          </div>
-                          <div style={{ fontSize: 14, marginBottom: 8, color: '#333' }}>{issue.message}</div>
-                          {issue.text && (
-                            <div style={{ fontSize: 13, color: '#666', background: '#fff', padding: 8, borderRadius: 4, fontFamily: 'monospace' }}>
-                              "{issue.text}"
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* AI Suggestions Section */}
-              {suggestions.length > 0 && (
-                <div>
-                  <h3 style={{ marginTop: 0, marginBottom: 16, color: '#333' }}>
-                    AI Suggestions ({suggestions.length})
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {suggestions.map((edit, idx) => (
-                      <div 
-                        key={idx}
-                        style={{ 
-                          padding: 16,
-                          border: '1px solid #4caf50',
-                          borderLeft: '4px solid #4caf50',
-                          borderRadius: 4,
-                          background: '#fafafa'
-                        }}
-                      >
-                        <div style={{ fontSize: 11, color: '#666', marginBottom: 8 }}>
-                          Line {edit.line}
-                        </div>
-                        <div style={{ marginBottom: 8 }}>
-                          <div style={{ fontSize: 11, color: '#666', marginBottom: 4, fontWeight: 'bold' }}>
-                            ORIGINAL:
-                          </div>
-                          <div style={{ fontSize: 13, padding: 10, background: '#ffe0e0', borderRadius: 4, fontFamily: 'monospace', color: '#333' }}>
-                            {edit.old}
-                          </div>
-                        </div>
-                        <div style={{ marginBottom: 12 }}>
-                          <div style={{ fontSize: 11, color: '#666', marginBottom: 4, fontWeight: 'bold' }}>
-                            SUGGESTED:
-                          </div>
-                          <div style={{ fontSize: 13, padding: 10, background: '#e0ffe0', borderRadius: 4, fontFamily: 'monospace', color: '#333' }}>
-                            {edit.new}
-                          </div>
-                        </div>
-                        {edit.rationale && (
-                          <div style={{ fontSize: 12, color: '#666', fontStyle: 'italic', padding: 8, background: '#fff', borderRadius: 4 }}>
-                            <strong>Rationale:</strong> {edit.rationale}
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                          <button 
-                            onClick={() => {
-                              applySuggestion(edit)
-                              setShowCritiqueModal(false)
-                            }}
-                            style={{ 
-                              flex: 1,
-                              padding: '8px 16px', 
-                              background: '#4caf50', 
-                              color: '#fff', 
-                              border: 'none', 
-                              borderRadius: 4, 
-                              cursor: 'pointer',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            Apply This Change
-                          </button>
-                          <button 
-                            onClick={() => rejectSuggestion(edit)}
-                            style={{ 
-                              flex: 1,
-                              padding: '8px 16px', 
-                              background: '#f44336', 
-                              color: '#fff', 
-                              border: 'none', 
-                              borderRadius: 4, 
-                              cursor: 'pointer',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            Ignore
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
