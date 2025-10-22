@@ -37,5 +37,5 @@ export const LIMITS = {
   outline: 3000,
   worldbuilding: 3000,
   genre: 50,
-  styleGuide: 2500,
+  styleGuide: 5000,
 } as const

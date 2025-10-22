@@ -113,7 +113,7 @@ The deterministic engine performs 15+ quality checks:
 - **Outline**: 3000 character plot structure
 - **Worldbuilding**: 3000 character setting details
 - **Genre**: 50 character genre specification
-- **Style Guide**: 2500 character writing style preferences
+- **Style Guide**: 5000 character writing style preferences
 - **Characters**: Full character management with fields for:
   - Name (required)
   - Character Type (protagonist, antagonist, secondary, support, minor)
