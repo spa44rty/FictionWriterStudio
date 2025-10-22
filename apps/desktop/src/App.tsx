@@ -395,7 +395,7 @@ Generate a comprehensive story outline:`
                   placeholder="e.g., llama3.2:latest, mistral"
                 />
                 <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-                  Used for: "Analyze & Suggest Fixes" button and fix/improve prompts in chat
+                  Used for: "Copy Editor Critique" button and fix/improve prompts in chat
                 </div>
               </div>
 
@@ -686,11 +686,11 @@ Generate a comprehensive story outline:`
                   fontWeight: 'bold'
                 }}
               >
-                {loadingSuggestions ? 'Analyzing...' : 'Analyze & Suggest Fixes'}
+                {loadingSuggestions ? 'Reviewing...' : 'Copy Editor Critique'}
               </button>
-            </div>
-            <div style={{ marginTop: 12, fontSize: 11, color: '#666', lineHeight: 1.4 }}>
-              <div>Flags issues and suggests AI-powered corrections</div>
+              <div style={{ fontSize: 11, color: '#666', marginTop: -4 }}>
+                Professional publishing-house markup with detailed suggestions
+              </div>
             </div>
           </>
         )}

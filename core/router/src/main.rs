@@ -113,7 +113,7 @@ MANUSCRIPT TEXT:
         let old = old_lines.get(i).cloned().unwrap_or_default();
         let new = new_lines.get(i).cloned().unwrap_or_default();
         if old != new {
-            edits.push(EditItem { line: i + 1, old, new, citations: vec![], rationale: "minor polish".into() });
+            edits.push(EditItem { line: i + 1, old, new, citations: vec![], rationale: "Copy edit: improved clarity, precision, and readability per publishing standards".into() });
         }
     }
 
