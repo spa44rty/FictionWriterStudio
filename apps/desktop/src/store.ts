@@ -27,9 +27,13 @@ interface StoryState extends StoryBible {
 
 const persistToIndexedDB = async (state: Partial<StoryState>) => {
   const { isLoaded, loadData, updateField, updateModel, addCharacter, updateCharacter, deleteCharacter, 
-          addChapter, updateChapter, deleteChapter, setActiveChapter, updateChapterContent, ...dataToSave } = state as any
+          addChapter, updateChapter, deleteChapter, setActiveChapter, updateChapterContent, activeChapterId, ...dataToSave } = state as any
   
-  await saveStoryData(dataToSave)
+  try {
+    await saveStoryData(dataToSave)
+  } catch (error) {
+    console.error('Failed to persist to IndexedDB:', error)
+  }
 }
 
 export const useStoryStore = create<StoryState>((set, get) => ({

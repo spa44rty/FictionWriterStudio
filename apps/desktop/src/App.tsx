@@ -71,8 +71,10 @@ export default function App() {
   const store = useStoryStore()
 
   useEffect(() => {
-    store.loadData()
-  }, [])
+    if (!store.isLoaded) {
+      store.loadData()
+    }
+  }, [store.isLoaded, store.loadData])
 
   useEffect(() => {
     if (store.activeChapterId) {

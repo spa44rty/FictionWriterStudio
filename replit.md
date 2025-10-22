@@ -1,9 +1,12 @@
 # Offline Fiction - Desktop Writing App
 
 ## Overview
-An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
+An offline-first writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. Works as both a browser app and desktop app. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing. Browser version automatically saves all Story Bible data to IndexedDB for persistence.
 
 ## Recent Changes
+- 2025-10-22: Added IndexedDB persistence for browser version - all Story Bible data automatically saved
+- 2025-10-22: Created OLLAMA_CORS_SETUP.md guide for browser version configuration
+- 2025-10-22: Browser version now primary deployment target with desktop as optional
 - 2025-10-22: Automatic background summary generation when chapters are saved (invisible to user, purely for AI context)
 - 2025-10-22: Added Story Bible context to all AI chat queries (genre, synopsis, outline, worldbuilding, style guide, characters)
 - 2025-10-22: Added previous chapter summaries to chat context to avoid token limits
@@ -172,7 +175,10 @@ The deterministic engine performs 15+ quality checks:
 - React dev server runs on port 5000
 - Ollama expected on port 11434
 - All network traffic restricted to 127.0.0.1
-- Story Bible data stored in Zustand store (in-memory, persistence pending)
+- **Story Bible data persisted in browser IndexedDB** (automatic save on every change)
+- IndexedDB provides ~4GB+ storage for browser version
+- Data persists across browser sessions and refreshes
+- Ollama CORS configuration required for browser version (see OLLAMA_CORS_SETUP.md)
 
 ## Desktop Application (Tauri)
 - **Tauri configuration** located in `apps/desktop/src-tauri/`
