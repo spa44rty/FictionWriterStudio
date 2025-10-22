@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useStoryStore } from './store'
 import { BibleSection } from './components/BibleSection'
 import { CharacterList } from './components/CharacterList'
-import { InlineEditor } from './components/InlineEditor'
+import { InlineEditor, InlineEditorRef } from './components/InlineEditor'
 import { LIMITS } from './types'
 
 type Section = 'braindump' | 'synopsis' | 'outline' | 'characters' | 'worldbuilding' | 'genre' | 'styleGuide' | 'settings' | 'editor'
@@ -70,6 +70,7 @@ export default function App() {
   const [loadingChat, setLoadingChat] = useState(false)
   const [leftWidth, setLeftWidth] = useState(280)
   const [isDraggingLeft, setIsDraggingLeft] = useState(false)
+  const editorRef = useRef<InlineEditorRef>(null)
   const { heuristics, minorEdit, chat } = useApi()
 
   const store = useStoryStore()
@@ -403,6 +404,7 @@ export default function App() {
             <div style={{ flex: '1 1 50%', padding: 12, borderBottom: '1px solid #ddd', display: 'flex', flexDirection: 'column' }}>
               <h2 style={{ marginTop: 0, marginBottom: 8 }}>Scene Editor</h2>
               <InlineEditor
+                ref={editorRef}
                 value={text}
                 onChange={setText}
                 issues={issues}
@@ -432,7 +434,29 @@ export default function App() {
                       };
                       const color = severityColors[i.severity as keyof typeof severityColors] || '#666';
                       return (
-                        <li key={idx} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
+                        <li 
+                          key={idx} 
+                          onClick={() => {
+                            if (i.position && editorRef.current) {
+                              editorRef.current.jumpToPosition(i.position, i, 'issue')
+                            }
+                          }}
+                          style={{ 
+                            marginBottom: 12, 
+                            paddingBottom: 12, 
+                            borderBottom: '1px solid #eee',
+                            cursor: i.position ? 'pointer' : 'default',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (i.position) {
+                              e.currentTarget.style.backgroundColor = '#f5f5f5'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent'
+                          }}
+                        >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                             <span style={{ 
                               fontSize: 10, 
@@ -459,8 +483,32 @@ export default function App() {
                   <h4 style={{ fontSize: 14, marginBottom: 8, color: '#666' }}>AI Suggestions ({suggestions.length})</h4>
                   <ul style={{ fontSize: 13, listStyle: 'none', padding: 0, margin: 0 }}>
                     {suggestions.map((edit, idx) => (
-                      <li key={idx} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #eee' }}>
-                        <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>Line {edit.line}</div>
+                      <li 
+                        key={idx} 
+                        onClick={() => {
+                          if (edit.position && editorRef.current) {
+                            editorRef.current.jumpToPosition(edit.position, edit, 'suggestion')
+                          }
+                        }}
+                        style={{ 
+                          marginBottom: 16, 
+                          paddingBottom: 16, 
+                          borderBottom: '1px solid #eee',
+                          cursor: edit.position ? 'pointer' : 'default',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (edit.position) {
+                            e.currentTarget.style.backgroundColor = '#f5f5f5'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }}
+                      >
+                        <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>
+                          Line {edit.line} {edit.position && '· Click to jump'}
+                        </div>
                         <div style={{ fontSize: 12, padding: 8, background: '#ffe0e0', borderRadius: 4, marginBottom: 4 }}>
                           <strong>Old:</strong> {edit.old}
                         </div>

@@ -4,6 +4,7 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Added click-to-jump navigation from Issues & Suggestions panel to exact locations in scene editor
 - 2025-10-22: Implemented inline error highlighting within the scene editor with click-to-edit tooltips
 - 2025-10-22: Created InlineEditor component with wavy underlines for issues (red/orange/blue) and suggestions (green)
 - 2025-10-22: Added position-based text highlighting with Apply/Ignore options in tooltips
@@ -126,6 +127,7 @@ The deterministic engine performs 15+ quality checks:
 - **Issues & Suggestions Panel**: Lower half shows summary of all flagged issues and AI suggestions
   - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity levels with counts
   - **AI Suggestions**: Line-by-line edits listed with old/new text and rationale
+  - **Click to jump**: Click any issue or suggestion in the panel to jump to its exact location in the editor
   - Provides overview while inline highlighting shows exact locations
   - Apply/Reject buttons available in both panel and inline tooltips
   

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 
 interface Issue {
   kind: string
@@ -24,9 +24,14 @@ interface InlineEditorProps {
   onIgnoreIssue: (issue: Issue) => void
   onApplySuggestion: (suggestion: Suggestion) => void
   onIgnoreSuggestion: (suggestion: Suggestion) => void
+  onJumpToPosition?: (position: { start: number, end: number }) => void
 }
 
-export function InlineEditor({
+export interface InlineEditorRef {
+  jumpToPosition: (position: { start: number, end: number }, item: any, type: 'issue' | 'suggestion') => void
+}
+
+export const InlineEditor = forwardRef<InlineEditorRef, InlineEditorProps>(({
   value,
   onChange,
   issues,
@@ -34,11 +39,36 @@ export function InlineEditor({
   onIgnoreIssue,
   onApplySuggestion,
   onIgnoreSuggestion
-}: InlineEditorProps) {
+}, ref) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   const [activeTooltip, setActiveTooltip] = useState<{ type: 'issue' | 'suggestion', item: any, rect: DOMRect } | null>(null)
   const [highlights, setHighlights] = useState<Array<{ start: number, end: number, type: 'issue' | 'suggestion', severity?: string, item: any }>>([])
+
+  // Expose jumpToPosition method to parent
+  useImperativeHandle(ref, () => ({
+    jumpToPosition: (position: { start: number, end: number }, item: any, type: 'issue' | 'suggestion') => {
+      const textarea = textareaRef.current
+      if (!textarea) return
+
+      // Set cursor position and focus
+      textarea.setSelectionRange(position.start, position.end)
+      textarea.focus()
+
+      // Scroll to make the selection visible
+      const lineHeight = 18 * 1.6 // fontSize * lineHeight
+      const charPos = position.start
+      const textBefore = value.substring(0, charPos)
+      const lines = textBefore.split('\n').length
+      const scrollTop = Math.max(0, (lines - 2) * lineHeight)
+      
+      textarea.scrollTop = scrollTop
+
+      // Show tooltip for this item
+      const rect = textarea.getBoundingClientRect()
+      setActiveTooltip({ type, item, rect })
+    }
+  }), [value])
 
   // Update highlights when issues or suggestions change
   useEffect(() => {
@@ -333,4 +363,4 @@ export function InlineEditor({
       )}
     </div>
   )
-}
+})
