@@ -72,6 +72,7 @@ export default function App() {
   const [leftWidth, setLeftWidth] = useState(280)
   const [isDraggingLeft, setIsDraggingLeft] = useState(false)
   const [generatingOutline, setGeneratingOutline] = useState(false)
+  const [showCritiqueModal, setShowCritiqueModal] = useState(false)
   const editorRef = useRef<InlineEditorRef>(null)
   const { heuristics, minorEdit, chat } = useApi()
 
@@ -131,6 +132,8 @@ export default function App() {
           alert('Found issues, but could not get AI suggestions. Make sure Ollama is running with the medium model installed.')
         }
       }
+      
+      setShowCritiqueModal(true)
     } catch (err) {
       console.error('Analysis error:', err)
       alert('Could not run analysis. Check that the backend is running on port 8000.')
@@ -634,6 +637,210 @@ Generate a comprehensive story outline:`
       <main style={{ flex: 1, overflow: 'hidden', background: '#fafafa' }}>
         {renderContent()}
       </main>
+
+      {/* Critique Modal */}
+      {showCritiqueModal && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setShowCritiqueModal(false)}
+        >
+          <div 
+            style={{ 
+              background: '#fff', 
+              borderRadius: 8, 
+              width: '80%', 
+              maxWidth: 900,
+              maxHeight: '80vh',
+              overflow: 'auto',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ 
+              padding: '16px 24px', 
+              borderBottom: '2px solid #ddd',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              position: 'sticky',
+              top: 0,
+              background: '#fff',
+              zIndex: 1
+            }}>
+              <h2 style={{ margin: 0 }}>Copy Editor Critique</h2>
+              <button
+                onClick={() => setShowCritiqueModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#f44336',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ padding: 24 }}>
+              {/* Issues Section */}
+              <div style={{ marginBottom: 32 }}>
+                <h3 style={{ marginTop: 0, marginBottom: 16, color: '#333' }}>
+                  Issues Found ({issues.length})
+                </h3>
+                {issues.length === 0 ? (
+                  <p style={{ color: '#666', fontStyle: 'italic' }}>No issues found. Your prose looks clean!</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {issues.map((issue, idx) => {
+                      const severityColors = {
+                        error: '#dc3545',
+                        warning: '#ff9800',
+                        info: '#2196f3'
+                      };
+                      const color = severityColors[issue.severity as keyof typeof severityColors] || '#666';
+                      
+                      return (
+                        <div 
+                          key={idx}
+                          style={{ 
+                            padding: 16,
+                            border: `1px solid ${color}`,
+                            borderLeft: `4px solid ${color}`,
+                            borderRadius: 4,
+                            background: '#fafafa'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <span style={{ 
+                              fontSize: 10, 
+                              fontWeight: 'bold', 
+                              color: '#fff',
+                              background: color,
+                              padding: '3px 8px',
+                              borderRadius: 3,
+                              textTransform: 'uppercase'
+                            }}>
+                              {issue.severity}
+                            </span>
+                            <code style={{ fontSize: 12, color: '#666', background: '#fff', padding: '2px 6px', borderRadius: 3 }}>
+                              {issue.kind}
+                            </code>
+                          </div>
+                          <div style={{ fontSize: 14, marginBottom: 8, color: '#333' }}>{issue.message}</div>
+                          {issue.text && (
+                            <div style={{ fontSize: 13, color: '#666', background: '#fff', padding: 8, borderRadius: 4, fontFamily: 'monospace' }}>
+                              "{issue.text}"
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* AI Suggestions Section */}
+              {suggestions.length > 0 && (
+                <div>
+                  <h3 style={{ marginTop: 0, marginBottom: 16, color: '#333' }}>
+                    AI Suggestions ({suggestions.length})
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {suggestions.map((edit, idx) => (
+                      <div 
+                        key={idx}
+                        style={{ 
+                          padding: 16,
+                          border: '1px solid #4caf50',
+                          borderLeft: '4px solid #4caf50',
+                          borderRadius: 4,
+                          background: '#fafafa'
+                        }}
+                      >
+                        <div style={{ fontSize: 11, color: '#666', marginBottom: 8 }}>
+                          Line {edit.line}
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, color: '#666', marginBottom: 4, fontWeight: 'bold' }}>
+                            ORIGINAL:
+                          </div>
+                          <div style={{ fontSize: 13, padding: 10, background: '#ffe0e0', borderRadius: 4, fontFamily: 'monospace', color: '#333' }}>
+                            {edit.old}
+                          </div>
+                        </div>
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ fontSize: 11, color: '#666', marginBottom: 4, fontWeight: 'bold' }}>
+                            SUGGESTED:
+                          </div>
+                          <div style={{ fontSize: 13, padding: 10, background: '#e0ffe0', borderRadius: 4, fontFamily: 'monospace', color: '#333' }}>
+                            {edit.new}
+                          </div>
+                        </div>
+                        {edit.rationale && (
+                          <div style={{ fontSize: 12, color: '#666', fontStyle: 'italic', padding: 8, background: '#fff', borderRadius: 4 }}>
+                            <strong>Rationale:</strong> {edit.rationale}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                          <button 
+                            onClick={() => {
+                              applySuggestion(edit)
+                              setShowCritiqueModal(false)
+                            }}
+                            style={{ 
+                              flex: 1,
+                              padding: '8px 16px', 
+                              background: '#4caf50', 
+                              color: '#fff', 
+                              border: 'none', 
+                              borderRadius: 4, 
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            Apply This Change
+                          </button>
+                          <button 
+                            onClick={() => rejectSuggestion(edit)}
+                            style={{ 
+                              flex: 1,
+                              padding: '8px 16px', 
+                              background: '#f44336', 
+                              color: '#fff', 
+                              border: 'none', 
+                              borderRadius: 4, 
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            Ignore
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

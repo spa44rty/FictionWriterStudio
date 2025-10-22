@@ -173,8 +173,16 @@ The deterministic engine performs 15+ quality checks:
   - Provides AI-powered line-by-line improvements as if preparing manuscript for publication
   - **Editorial standards**: Strengthens weak verbs, eliminates adverbs/fillers, fixes spelling, replaces clichés, converts passive to active voice
   - **Preserves author's voice**: Makes prose stronger, clearer, and more engaging while maintaining intent
-  - Highlights appear directly in the editor with click-to-edit tooltips
-  - Individual Apply/Ignore options for each suggestion
+  - **Dual feedback system**:
+    - **Popup window**: Opens after critique completes, showing all issues and suggestions organized by category
+    - **Inline highlights**: Issues and suggestions appear directly in the editor with click-to-edit tooltips
+  - **Popup window features**:
+    - "Issues Found" section with severity badges (ERROR/WARNING/INFO) and color-coded borders
+    - "AI Suggestions" section with original vs. suggested text in side-by-side view
+    - Apply/Ignore buttons for each suggestion directly in the popup
+    - Click "Apply This Change" closes popup and applies the edit
+    - Scrollable for long critiques
+  - Individual Apply/Ignore options for each suggestion (both popup and inline)
   - Uses medium model for balanced speed and quality
   - All suggestions include rationale: "Copy edit: improved clarity, precision, and readability per publishing standards"
   
