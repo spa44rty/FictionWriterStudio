@@ -4,6 +4,7 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Transformed analyzer to "Copy Editor Critique" - professional publishing-house editorial review
 - 2025-10-22: Added "Generate Outline" button to Synopsis tab for AI-powered outline creation
 - 2025-10-22: Enhanced AI prompting to include specific issues found for targeted line-level fixes
 - 2025-10-22: Added concatenated words detection (e.g., "thedark" → suggests "the dark")
@@ -136,13 +137,16 @@ The deterministic engine performs 15+ quality checks:
   - Filters by word length similarity (within 2 characters)
   - Works with the existing Ignore button if suggestions aren't helpful
   
-- **Prose Analysis**: "Analyze & Suggest Fixes" button runs 16+ deterministic checks AND provides AI-powered corrections
-  - Flags spelling, grammar, and style violations inline
-  - Automatically suggests LLM-powered line-by-line improvements
-  - Highlights appear directly in the editor as you click on problematic text
-  - Individual Apply/Ignore options via click-to-edit tooltips
-  - Respects style guide rules
+- **Copy Editor Critique**: Professional publishing-house editorial review with comprehensive markup
+  - **"Copy Editor Critique" button**: Acts as senior copy editor at prestigious publishing house
+  - Runs 16+ deterministic checks to detect issues (spelling, grammar, style, weak verbs, adverbs, fillers, clichés)
+  - Provides AI-powered line-by-line improvements as if preparing manuscript for publication
+  - **Editorial standards**: Strengthens weak verbs, eliminates adverbs/fillers, fixes spelling, replaces clichés, converts passive to active voice
+  - **Preserves author's voice**: Makes prose stronger, clearer, and more engaging while maintaining intent
+  - Highlights appear directly in the editor with click-to-edit tooltips
+  - Individual Apply/Ignore options for each suggestion
   - Uses medium model for balanced speed and quality
+  - All suggestions include rationale: "Copy edit: improved clarity, precision, and readability per publishing standards"
   
 - **Issues & Suggestions Panel**: Lower half shows summary of all flagged issues and AI suggestions
   - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity levels with counts
@@ -177,9 +181,9 @@ The app uses a **three-tier model strategy** with **automatic intelligent select
 - **Keywords**: "what", "how", "why", "explain"
 - **Alternatives**: `phi3`, `gemma2:2b`
 
-### Medium Model (Analysis & Edits)
+### Medium Model (Copy Editing & Improvements)
 - **Default**: `llama3.2:latest` (7-8B parameters)
-- **Auto-selected for**: Fix/improve requests, "Analyze & Suggest Fixes" button
+- **Auto-selected for**: Fix/improve requests, "Copy Editor Critique" button
 - **Keywords**: "fix", "correct", "improve", "suggest", "edit", "change", "revise"
 - **Alternatives**: `mistral`, `qwen2.5:7b`
 
@@ -190,7 +194,7 @@ The app uses a **three-tier model strategy** with **automatic intelligent select
 - **Alternatives**: `qwen2.5:72b`, `mixtral:8x7b`
 
 ### How It Works
-1. **Analyze button**: Always uses medium model for balanced quality
+1. **Copy Editor Critique button**: Always uses medium model for balanced quality and professional editorial review
 2. **Chat interface**: Analyzes your prompt and automatically selects the best model
 3. **Model indication**: Chat responses show which model was used
 4. **Configuration**: Change models in the **AI Models** settings page
