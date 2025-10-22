@@ -9,6 +9,7 @@ interface ModelConfig {
 
 interface StoryState extends StoryBible {
   models: ModelConfig
+  activeChapterId: string | null
   updateField: (field: keyof Omit<StoryBible, 'characters' | 'chapters'>, value: string) => void
   updateModel: (size: keyof ModelConfig, model: string) => void
   addCharacter: (character: Character) => void
@@ -17,6 +18,8 @@ interface StoryState extends StoryBible {
   addChapter: (chapter: Chapter) => void
   updateChapter: (id: string, chapter: Partial<Chapter>) => void
   deleteChapter: (id: string) => void
+  setActiveChapter: (id: string | null) => void
+  updateChapterContent: (id: string, content: string) => void
 }
 
 export const useStoryStore = create<StoryState>((set) => ({
@@ -28,6 +31,7 @@ export const useStoryStore = create<StoryState>((set) => ({
   styleGuide: '',
   characters: [],
   chapters: [],
+  activeChapterId: null,
   models: {
     small: 'llama3.2:3b',
     medium: 'llama3.2:latest',
@@ -61,6 +65,15 @@ export const useStoryStore = create<StoryState>((set) => ({
   })),
   
   deleteChapter: (id) => set((state) => ({
-    chapters: state.chapters.filter(c => c.id !== id)
+    chapters: state.chapters.filter(c => c.id !== id),
+    activeChapterId: state.activeChapterId === id ? null : state.activeChapterId
+  })),
+  
+  setActiveChapter: (id) => set(() => ({
+    activeChapterId: id
+  })),
+  
+  updateChapterContent: (id, content) => set((state) => ({
+    chapters: state.chapters.map(c => c.id === id ? { ...c, content, wordCount: content.split(/\s+/).filter(w => w.length > 0).length } : c)
   }))
 }))

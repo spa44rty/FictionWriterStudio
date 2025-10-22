@@ -23,7 +23,8 @@ export function ChapterForm({ chapter, onSave, onCancel }: ChapterFormProps) {
       title,
       summary,
       wordCount,
-      status
+      status,
+      content: chapter?.content || ''
     })
   }
 

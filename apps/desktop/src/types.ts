@@ -17,6 +17,7 @@ export interface Chapter {
   summary: string
   wordCount: number
   status: 'planned' | 'draft' | 'revised' | 'final'
+  content: string
 }
 
 export interface StoryBible {
