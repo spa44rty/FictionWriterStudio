@@ -4,6 +4,7 @@
 An offline-first desktop writing application built with Tauri + React + Rust for longform fiction writing with local LLM assistance. The app enforces style guides, maintains canon, and provides deterministic heuristic analysis plus LLM-powered line editing.
 
 ## Recent Changes
+- 2025-10-22: Transformed Scene Editor into Chapter Editor with individual chapter content storage and save functionality
 - 2025-10-22: Added Chapters section above Story Bible for chapter management
 - 2025-10-22: Transformed analyzer to "Copy Editor Critique" - professional publishing-house editorial review
 - 2025-10-22: Added "Generate Outline" button to Synopsis tab for AI-powered outline creation
@@ -127,15 +128,28 @@ The deterministic engine performs 15+ quality checks:
 - All sections have character counters that turn red when over limit
 - Navigation between sections via clickable sidebar
 
-### Scene Editor Layout
+### Chapter Editor Layout
 - **Three-section vertical layout:**
   - **Left Sidebar**: Story Bible navigation with resizable drag handle (200-500px)
   - **Center/Right Area (stacked vertically)**:
-    - **Top 50%**: Scene Editor for writing
+    - **Top 50%**: Chapter Editor for writing individual chapter content
     - **Middle 50%**: Issues & Suggestions panel
     - **Bottom**: AI Writing Assistant chat prompt line
 
-### Scene Editor Features
+### Chapter Editor Features
+- **Individual Chapter Storage**: Each chapter stores its own content separately
+  - Click any chapter in the Chapters section to load it in the editor
+  - Active chapter highlighted with blue border in chapter list
+  - Automatically navigates to editor when chapter is clicked
+  - Chapter title shown in editor header (e.g., "Chapter 1: The Beginning")
+  
+- **Save Chapter Button**: Saves current chapter content and auto-calculates word count
+  - Only appears when a chapter is selected
+  - Updates chapter with content and recalculates word count
+  - Shows success confirmation when saved
+  - Content persists when switching between chapters
+
+
 - **Inline Error Highlighting**: Issues and suggestions appear directly in the text with colored wavy underlines
   - **Issues**: ERROR (red), WARNING (orange), INFO (blue) severity-based colors
   - **AI Suggestions**: Green underlines for LLM-powered improvements
